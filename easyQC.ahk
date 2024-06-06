@@ -76,40 +76,32 @@ Setup:
 ; [^ => Ctrl] [! => Alt] [+ => Shift]
 ; [# => Win] [_ & _ => (combo hotkey)]
 
-#HotIf WinActive("ahk_class zzzChrome_WidgetWin_1")
+; Examples
+; ========================
+; #HotIf WinActive("ahk_class MozillaWindowClass")
+; ^1::Send "This is Firef"
+; ^3::WinMaximize "A"
+; :*:ftw::Free the Whales ; Hotstring
 
-^3::WinMaximize "A"
-^4::WinMaximize "A"
+; ^a::
+; {
+;    TrayTip(
+;        (
+;            "Initials:`t`t" "MZ" "`n"
+;             "Customer:`t" "Alltag" "`n"
+;             "Upc:`t`t" "6382" "`n"
+;         ),
+;         "Running: " A_ScriptName "`nHotkey  : " A_ThisHotkey,
+;         4
+;     )
+;     SetTimer () => TrayTip(), -5000
+; }
 
-:*:ftw::Free the Whales
+; ^2::
+; {
+;     ans := InputBox("What is your first name?")
+;     TrayTip ("Hi, " ans.value)
+;     SetTimer () => TrayTip(), -5000
+; }
 
-#HotIf WinActive("ahk_class zzzMozillaWindowClass")
-^1::Send "This is Firefox"
-
-
-#HotIf
-^1::SendInput "My First Script"
-
-^a::
-{
-    TrayTip(
-        (
-            "Initials:`t`t" "MZ" "`n"
-            "Customer:`t" "Alltag" "`n"
-            "Upc:`t`t" "6382" "`n"
-        ),
-        "Running: " A_ScriptName "`nHotkey  : " A_ThisHotkey,
-        4
-    )
-        
-    SetTimer () => TrayTip(), -5000
-}
-
-^2::
-{
-    ans := InputBox("What is your first name?")
-    TrayTip ("Hi, " ans.value)
-    SetTimer () => TrayTip(), -5000
-}
-
-!+^x::Run A_Desktop "\Some_Program\Program.exe"
+; !+^x::Run A_Desktop "\Some_Program\Program.exe"
