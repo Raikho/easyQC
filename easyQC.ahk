@@ -31,22 +31,22 @@ MyGui.SetFont("s14", "Verdana")
 MyGui.Move(0, 0, 1000, 1000)
 
 MyGui.AddText("Section", "Initials: ")
-MyGui.AddEdit("ys", data.initials.value)
+data.initials.gui := MyGui.AddEdit("ys", data.initials.value)
 
 MyGui.AddText("xs Section", "Customer: ")
-customer := MyGui.AddEdit("ys", data.customer.value)
+data.customer.gui := MyGui.AddEdit("ys", data.customer.value)
 
 MyGui.AddText("xs Section", "Order: ")
-order := MyGui.AddEdit("ys", data.order.value)
+data.order.gui := MyGui.AddEdit("ys", data.order.value)
 
 MyGui.AddText("xs Section", "UPC: ")
-upc := MyGui.AddEdit("ys", data.upc.value)
+data.upc.gui := MyGui.AddEdit("ys", data.upc.value)
 
 MyGui.AddText("xs Section", "Style: ")
-style := MyGui.AddEdit("ys", data.style.value)
+data.style.gui := MyGui.AddEdit("ys", data.style.value)
 
 MyGui.AddText("xs Section", "Roll: ")
-Roll := MyGui.addEdit("ys")
+data.roll.gui := MyGui.addEdit("ys")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
 RestartButton := MyGui.AddButton("xs Default", "Restart")
@@ -59,22 +59,40 @@ MyGui.Show("NA")
 ; =============================================================================
 ; SETUP EVENTS
 ; =============================================================================
-saveButton.OnEvent("Click", onSave)
+For key, val in data.OwnProps()
+    data.%key%.gui.onEvent("Change", onDataUpdated.Bind(key, val))
+
+onDataUpdated(key, val, *) {
+    IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+}
+
+;data.initials.gui.onEvent("Change", initialsChanged)
+
+initialsChanged(*) {
+    MsgBox("INITIALS CHANGED")
+}
+
+
+
+
+saveButton.OnEvent("Click", onSave) ; TODO: make automatic w/ onchange
 RestartButton.OnEvent("Click", onRestart)
 
 
 
-onSave(*) => IniWrite("x", "config.ini", "main", "initials")
-onRestart(*)
-{
+onSave(*) {
+    IniWrite(data.initials.gui.value, "config.ini", "main", "initials")
+}
+
+onRestart(*) {
     TrayTip(
         (
-            "Initials:`t`t" initials.value "`n"
-            "Customer:`t" customer.value "`n"
-            "Order #:`t`t" order.value "`n"
-            "Roll:`t`t" roll.value "`n"
-            "Style:`t`t" style.value "`n"
-            "UPC:`t`t" upc.value "`n"
+            "Initials:`t`t" data.initials.value "`n"
+            "Customer:`t" data.customer.value "`n"
+            "Order #:`t`t" data.order.value "`n"
+            "Roll:`t`t" data.roll.value "`n"
+            "Style:`t`t" data.style.value "`n"
+            "UPC:`t`t" data.upc.value "`n"
         ),
         "Running: " A_ScriptName,
         4
