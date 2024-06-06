@@ -53,6 +53,7 @@ RestartButton := MyGui.AddButton("xs Default", "Restart")
 MyGui.AddButton("xs Default", "Continue?")
 MyGui.AddButton("xs Default", "Get Results")
 saveButton := MyGui.AddButton("xs Default", "Save")
+printButton := MyGui.AddButton("xs Default", "Print")
 
 MyGui.Show("NA")
 
@@ -77,12 +78,38 @@ initialsChanged(*) {
 
 saveButton.OnEvent("Click", onSave) ; TODO: make automatic w/ onchange
 RestartButton.OnEvent("Click", onRestart)
+printButton.OnEvent("Click", onPrint)
 
 
 
 onSave(*) {
     IniWrite(data.initials.gui.value, "config.ini", "main", "initials")
 }
+
+onPrint(*) {
+    SendInput data.initials.gui.value "{enter}"
+    Sleep 50
+    SendInput data.customer.gui.value "{enter}"
+    Sleep 50
+    SendInput data.order.gui.value "{enter}"
+    Sleep 50
+    SendInput data.upc.gui.value "{enter}"
+    Sleep 50
+    SendInput data.style.gui.value "{enter}"
+    Sleep 50
+    SendInput data.roll.gui.value "{enter}"
+    Sleep 50
+    SendInput "Y{enter}"
+    Sleep 50
+    SendInput "N{enter}"
+    Sleep 50
+    SendInput "Y{enter}"
+    Sleep 50
+}
+
+
+; DEBUG
+^1::onPrint()
 
 onRestart(*) {
     TrayTip(
