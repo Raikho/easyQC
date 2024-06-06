@@ -1,9 +1,15 @@
-﻿MyGui := Gui()
+﻿; Load Variables
+; =================================
+initials := IniRead("config.ini", "main", "initials", "??")
+
+; Create GUI
+; =================================
+MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
 MyGui.Move(0, 0, 1000, 1000)
 
 MyGui.AddText("Section", "Initials: ")
-initials := MyGui.AddEdit("ys", "x")
+MyGui.AddEdit("ys", initials)
 
 MyGui.AddText("xs Section", "Customer: ")
 customer := MyGui.AddEdit("ys", "Alltag")
@@ -24,8 +30,12 @@ MyGui.AddUpDown("Range1-40 Wrap", 1)
 RestartButton := MyGui.AddButton("xs Default", "Restart")
 MyGui.AddButton("xs Default", "Continue?")
 MyGui.AddButton("xs Default", "Get Results")
+saveButton := MyGui.AddButton("xs Default", "Save")
+
+saveButton.OnEvent("Click", onSave)
 RestartButton.OnEvent("Click", onRestart)
 
+onSave(*) => IniWrite("abcde", "config.ini", "main", "initials")
 
 onRestart(*)
 {
