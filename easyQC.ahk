@@ -63,7 +63,7 @@ RestartButton.OnEvent("Click", onRestart)
 
 
 
-onSave(*) => IniWrite("abcde", "config.ini", "main", "initials")
+onSave(*) => IniWrite("x", "config.ini", "main", "initials")
 onRestart(*)
 {
     TrayTip(
