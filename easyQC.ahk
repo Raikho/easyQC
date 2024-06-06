@@ -1,52 +1,53 @@
 ﻿; =============================================================================
-; Load Variables
+; LOAD VARIABLES
 ; =============================================================================
 data := {
-    initials: "<initials>", 
-    customer: "<customer>",
-    order: "<order num>",
-    upc: "<upc>", 
-    style: "<style>",
-    roll: 1,
+    initials: { value: "<initials>" }, 
+    customer: { value:  "<customer>" },
+    order: { value: "<order num>" },
+    upc: { value: "<upc>" }, 
+    style: { value: "<style>" },
+    roll: { value: 1 },
 }
 
 For key, val in data.OwnProps()
-    data.%key% := IniRead("config.ini", "main", key, val)
+    data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 ; PRINT OUTPUT DEBUG
 outputString := ""
 For key, val in data.OwnProps()
-    outputString .= "[" key ": " val "]`n"
-TrayTip(outputString) ; debug
+    outputString .= "[" key ": " val.value "]`n"
+ToolTip(outputString) ; debug
+SetTimer () => ToolTip(), -1200
 
 
 initials := IniRead("config.ini", "main", "initials", "??")
 
 ; =============================================================================
-; Create GUI
+; CREATE GUI
 ; =============================================================================
 MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
 MyGui.Move(0, 0, 1000, 1000)
 
 MyGui.AddText("Section", "Initials: ")
-MyGui.AddEdit("ys", data.initials)
+MyGui.AddEdit("ys", data.initials.value)
 
 MyGui.AddText("xs Section", "Customer: ")
-customer := MyGui.AddEdit("ys", data.customer)
+customer := MyGui.AddEdit("ys", data.customer.value)
 
 MyGui.AddText("xs Section", "Order: ")
-order := MyGui.AddEdit("ys", data.order)
+order := MyGui.AddEdit("ys", data.order.value)
 
 MyGui.AddText("xs Section", "UPC: ")
-upc := MyGui.AddEdit("ys", data.upc)
+upc := MyGui.AddEdit("ys", data.upc.value)
 
 MyGui.AddText("xs Section", "Style: ")
-style := MyGui.AddEdit("ys", data.style)
+style := MyGui.AddEdit("ys", data.style.value)
 
 MyGui.AddText("xs Section", "Roll: ")
 Roll := MyGui.addEdit("ys")
-MyGui.AddUpDown("Range1-40 Wrap", data.roll)
+MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
 RestartButton := MyGui.AddButton("xs Default", "Restart")
 MyGui.AddButton("xs Default", "Continue?")
@@ -56,7 +57,7 @@ saveButton := MyGui.AddButton("xs Default", "Save")
 MyGui.Show("NA")
 
 ; =============================================================================
-; Setup Events
+; SETUP EVENTS
 ; =============================================================================
 saveButton.OnEvent("Click", onSave)
 RestartButton.OnEvent("Click", onRestart)
@@ -83,7 +84,7 @@ onRestart(*)
 }
 
 ; =============================================================================
-; Misc
+; MISC
 ; =============================================================================
 Setup:
 {
@@ -104,13 +105,11 @@ Setup:
 
 
 ; =============================================================================
-; Explanation
+; EXAMPLES
 ; =============================================================================
 ; [^ => Ctrl] [! => Alt] [+ => Shift]
 ; [# => Win] [_ & _ => (combo hotkey)]
 
-; Examples
-; ========================
 ; #HotIf WinActive("ahk_class MozillaWindowClass")
 ; ^1::Send "This is Firef"
 ; ^3::WinMaximize "A"
