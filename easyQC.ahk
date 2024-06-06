@@ -1,42 +1,69 @@
-﻿; Load Variables
-; =================================
+﻿; =============================================================================
+; Load Variables
+; =============================================================================
+data := {
+    initials: "<initials>", 
+    customer: "<customer>",
+    order: "<order num>",
+    upc: "<upc>", 
+    style: "<style>",
+    roll: 1,
+}
+
+For key, val in data.OwnProps()
+    data.%key% := IniRead("config.ini", "main", key, val)
+
+; PRINT OUTPUT DEBUG
+outputString := ""
+For key, val in data.OwnProps()
+    outputString .= "[" key ": " val "]`n"
+TrayTip(outputString) ; debug
+
+
 initials := IniRead("config.ini", "main", "initials", "??")
 
+; =============================================================================
 ; Create GUI
-; =================================
+; =============================================================================
 MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
 MyGui.Move(0, 0, 1000, 1000)
 
 MyGui.AddText("Section", "Initials: ")
-MyGui.AddEdit("ys", initials)
+MyGui.AddEdit("ys", data.initials)
 
 MyGui.AddText("xs Section", "Customer: ")
-customer := MyGui.AddEdit("ys", "Alltag")
+customer := MyGui.AddEdit("ys", data.customer)
 
 MyGui.AddText("xs Section", "Order: ")
-order := MyGui.AddEdit("ys", "1000000000")
+order := MyGui.AddEdit("ys", data.order)
 
 MyGui.AddText("xs Section", "UPC: ")
-upc := MyGui.AddEdit("ys", "2000000000")
+upc := MyGui.AddEdit("ys", data.upc)
 
 MyGui.AddText("xs Section", "Style: ")
-style := MyGui.AddEdit("ys", "3000")
+style := MyGui.AddEdit("ys", data.style)
 
 MyGui.AddText("xs Section", "Roll: ")
 Roll := MyGui.addEdit("ys")
-MyGui.AddUpDown("Range1-40 Wrap", 1)
+MyGui.AddUpDown("Range1-40 Wrap", data.roll)
 
 RestartButton := MyGui.AddButton("xs Default", "Restart")
 MyGui.AddButton("xs Default", "Continue?")
 MyGui.AddButton("xs Default", "Get Results")
 saveButton := MyGui.AddButton("xs Default", "Save")
 
+MyGui.Show("NA")
+
+; =============================================================================
+; Setup Events
+; =============================================================================
 saveButton.OnEvent("Click", onSave)
 RestartButton.OnEvent("Click", onRestart)
 
-onSave(*) => IniWrite("abcde", "config.ini", "main", "initials")
 
+
+onSave(*) => IniWrite("abcde", "config.ini", "main", "initials")
 onRestart(*)
 {
     TrayTip(
@@ -55,8 +82,9 @@ onRestart(*)
     SetTimer () => TrayTip(), -5000
 }
 
-MyGui.Show("NA")
-
+; =============================================================================
+; Misc
+; =============================================================================
 Setup:
 {
     #Requires AutoHotkey v2.0+
@@ -75,14 +103,9 @@ Setup:
 ; TODO: end script on close
 
 
-
-
-
-
-
-
+; =============================================================================
 ; Explanation
-; ========================
+; =============================================================================
 ; [^ => Ctrl] [! => Alt] [+ => Shift]
 ; [# => Win] [_ & _ => (combo hotkey)]
 
