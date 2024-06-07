@@ -1,4 +1,8 @@
-﻿dev := 0 ; set development or production mode
+﻿; =============================================================================
+; SETTINGS
+; =============================================================================
+dev := 0 ; set development or production mode
+inputDelay := 100 ; ms between entering next line when outputting values
 
 ; =============================================================================
 ; LOAD VARIABLES
@@ -68,23 +72,23 @@ MyGui.OnEvent("Close", onClose)
 ; =============================================================================
 onPrint(*) {
     SendInput data.initials.gui.value "{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput data.customer.gui.value "{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput data.order.gui.value "{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput data.upc.gui.value "{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput data.style.gui.value "{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput data.roll.gui.value "{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput "Y{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput "N{enter}"
-    Sleep 50
+    Sleep inputDelay
     SendInput "Y{enter}"
-    Sleep 50
+    Sleep inputDelay
 }
 
 onClose(*) {
