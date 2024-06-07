@@ -1,24 +1,19 @@
-﻿; =============================================================================
+﻿dev := 0 ; set development or production mode
+
+; =============================================================================
 ; LOAD VARIABLES
 ; =============================================================================
 data := {
-    initials: { value: "<initials>" }, 
+    initials: { value: ".." }, 
     customer: { value:  "<customer>" },
     order: { value: "<order num>" },
     upc: { value: "<upc>" }, 
-    style: { value: "<style>" },
+    style: { value: "...." },
     roll: { value: 1 },
 }
 
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
-
-; PRINT OUTPUT DEBUG // DEBUG
-; outputString := ""
-; For key, val in data.OwnProps()
-;     outputString .= "[" key ": " val.value "]`n"
-; ToolTip(outputString)
-; SetTimer () => ToolTip(), -1200
 
 ; =============================================================================
 ; CREATE GUI
@@ -28,8 +23,6 @@ MyGui.SetFont("s14", "Verdana")
 MyGui.SetFont("s14", "Courier")
 MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
-
-;// TODO: add groups/tabs
 
 MyGui.AddGroupBox("w330 h310 cGray Section", "Data")
 
@@ -73,7 +66,6 @@ MyGui.OnEvent("Close", onClose)
 ; =============================================================================
 ; SETUP FUNCTIONS
 ; =============================================================================
-
 onPrint(*) {
     SendInput data.initials.gui.value "{enter}"
     Sleep 50
@@ -96,10 +88,11 @@ onPrint(*) {
 }
 
 onClose(*) {
-    ; ExitApp // TODO: implement only for production version
+    if not (dev)
+        ExitApp
 }
 
-^1::onPrint() ;// DEBUG
+^1::onPrint()
 
 addDebugNotification(*) {
     TrayTip(
@@ -127,17 +120,25 @@ Setup:
     #SingleInstance force
 }
 
-; Helpful Development reload
+; Helpful Development live reload
 ~^s::
 {
-    Sleep 100
-    Reload
-    Sleep 1000
-    MsgBox("The script could not be reloaded.")
+    if (dev) {
+        Sleep 100
+        Reload
+        Sleep 1000
+        MsgBox("The script could not be reloaded.")
+    }
 }
 
-; TODO: end script on close
-
+;// DEBUG
+if (dev) {
+    outputString := ""
+    For key, val in data.OwnProps()
+        outputString .= "[" key ": " val.value "]`n"
+    ToolTip(outputString)
+    SetTimer () => ToolTip(), -1200
+}
 
 ; =============================================================================
 ; EXAMPLES
