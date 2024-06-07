@@ -13,11 +13,11 @@ data := {
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
-; PRINT OUTPUT DEBUG
+; PRINT OUTPUT DEBUG // DEBUG
 outputString := ""
 For key, val in data.OwnProps()
     outputString .= "[" key ": " val.value "]`n"
-ToolTip(outputString) ; debug
+ToolTip(outputString)
 SetTimer () => ToolTip(), -1200
 
 
@@ -80,8 +80,11 @@ saveButton.OnEvent("Click", onSave) ; TODO: make automatic w/ onchange
 RestartButton.OnEvent("Click", onRestart)
 printButton.OnEvent("Click", onPrint)
 
+MyGui.OnEvent("Close", onClose)
 
-
+; =============================================================================
+; SETUP FUNCTIONS
+; =============================================================================
 onSave(*) {
     IniWrite(data.initials.gui.value, "config.ini", "main", "initials")
 }
@@ -107,9 +110,11 @@ onPrint(*) {
     Sleep 50
 }
 
+onClose(*) {
+    ; ExitApp // TODO: implement only for production version
+}
 
-; DEBUG
-^1::onPrint()
+^1::onPrint() ;// DEBUG
 
 onRestart(*) {
     TrayTip(
