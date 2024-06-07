@@ -29,8 +29,10 @@ MyGui.Title := "easyQC"
 
 ;// TODO: add groups/tabs
 
-MyGui.AddText("Section", "Initials: ")
-data.initials.gui := MyGui.AddEdit("ys", data.initials.value)
+MyGui.AddGroupBox("w300 r8 cGray Section", "Data")
+
+MyGui.AddText("xp+20 yp+45 Section", "Initials: ")
+data.initials.gui := MyGui.AddEdit("ys w50", data.initials.value)
 MyGui.AddText("xs Section", "Customer: ")
 data.customer.gui := MyGui.AddEdit("ys", data.customer.value)
 MyGui.AddText("xs Section", "Order: ")
@@ -45,7 +47,7 @@ data.roll.gui.setFont("c0xe2e8f0 bold")
 data.roll.gui.Opt("+Background0x2563eb")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
-MyGui.addText(, "Press ctrl+1 to output values")
+MyGui.addText("x16", "Press ctrl+1 to output values")
 
 MyGui.Show("NA")
 
