@@ -14,46 +14,38 @@ For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 ; PRINT OUTPUT DEBUG // DEBUG
-outputString := ""
-For key, val in data.OwnProps()
-    outputString .= "[" key ": " val.value "]`n"
-ToolTip(outputString)
-SetTimer () => ToolTip(), -1200
-
-
-initials := IniRead("config.ini", "main", "initials", "??")
+; outputString := ""
+; For key, val in data.OwnProps()
+;     outputString .= "[" key ": " val.value "]`n"
+; ToolTip(outputString)
+; SetTimer () => ToolTip(), -1200
 
 ; =============================================================================
 ; CREATE GUI
 ; =============================================================================
 MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
-MyGui.Move(0, 0, 1000, 1000)
+MyGui.Title := "easyQC"
+
+;// TODO: add groups/tabs
 
 MyGui.AddText("Section", "Initials: ")
 data.initials.gui := MyGui.AddEdit("ys", data.initials.value)
-
 MyGui.AddText("xs Section", "Customer: ")
 data.customer.gui := MyGui.AddEdit("ys", data.customer.value)
-
 MyGui.AddText("xs Section", "Order: ")
 data.order.gui := MyGui.AddEdit("ys", data.order.value)
-
 MyGui.AddText("xs Section", "UPC: ")
 data.upc.gui := MyGui.AddEdit("ys", data.upc.value)
-
 MyGui.AddText("xs Section", "Style: ")
 data.style.gui := MyGui.AddEdit("ys", data.style.value)
-
 MyGui.AddText("xs Section", "Roll: ")
-data.roll.gui := MyGui.addEdit("ys")
+data.roll.gui := MyGui.addEdit("ys w60")
+data.roll.gui.setFont("c0xe2e8f0 bold")
+data.roll.gui.Opt("+Background0x2563eb")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
-RestartButton := MyGui.AddButton("xs Default", "Restart")
-MyGui.AddButton("xs Default", "Continue?")
-MyGui.AddButton("xs Default", "Get Results")
-saveButton := MyGui.AddButton("xs Default", "Save")
-printButton := MyGui.AddButton("xs Default", "Print")
+MyGui.addText(, "Press ctrl+1 to output values")
 
 MyGui.Show("NA")
 
@@ -67,27 +59,11 @@ onDataUpdated(key, val, *) {
     IniWrite(data.%key%.gui.value, "config.ini", "main", key)
 }
 
-;data.initials.gui.onEvent("Change", initialsChanged)
-
-initialsChanged(*) {
-    MsgBox("INITIALS CHANGED")
-}
-
-
-
-
-saveButton.OnEvent("Click", onSave) ; TODO: make automatic w/ onchange
-RestartButton.OnEvent("Click", onRestart)
-printButton.OnEvent("Click", onPrint)
-
 MyGui.OnEvent("Close", onClose)
 
 ; =============================================================================
 ; SETUP FUNCTIONS
 ; =============================================================================
-onSave(*) {
-    IniWrite(data.initials.gui.value, "config.ini", "main", "initials")
-}
 
 onPrint(*) {
     SendInput data.initials.gui.value "{enter}"
@@ -116,7 +92,7 @@ onClose(*) {
 
 ^1::onPrint() ;// DEBUG
 
-onRestart(*) {
+addDebugNotification(*) {
     TrayTip(
         (
             "Initials:`t`t" data.initials.value "`n"
