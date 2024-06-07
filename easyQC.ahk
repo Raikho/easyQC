@@ -25,23 +25,30 @@ For key, val in data.OwnProps()
 ; =============================================================================
 MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
+MyGui.SetFont("s14", "Courier")
+MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
 
 ;// TODO: add groups/tabs
 
-MyGui.AddGroupBox("w300 r8 cGray Section", "Data")
+MyGui.AddGroupBox("w330 h310 cGray Section", "Data")
 
 MyGui.AddText("xp+20 yp+45 Section", "Initials: ")
-data.initials.gui := MyGui.AddEdit("ys w50", data.initials.value)
+data.initials.gui := MyGui.AddEdit("ys w40 limit2", data.initials.value)
+
 MyGui.AddText("xs Section", "Customer: ")
-data.customer.gui := MyGui.AddEdit("ys", data.customer.value)
-MyGui.AddText("xs Section", "Order: ")
-data.order.gui := MyGui.AddEdit("ys", data.order.value)
-MyGui.AddText("xs Section", "UPC: ")
-data.upc.gui := MyGui.AddEdit("ys", data.upc.value)
-MyGui.AddText("xs Section", "Style: ")
-data.style.gui := MyGui.AddEdit("ys", data.style.value)
-MyGui.AddText("xs Section", "Roll: ")
+data.customer.gui := MyGui.AddEdit("ys w170", data.customer.value)
+
+MyGui.AddText("xs Section", "   Order: ")
+data.order.gui := MyGui.AddEdit("ys w170 number", data.order.value)
+
+MyGui.AddText("xs Section", "     UPC: ")
+data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
+
+MyGui.AddText("xs Section", "   Style: ")
+data.style.gui := MyGui.AddEdit("ys w60 limit4", data.style.value)
+
+MyGui.AddText("xs Section", "    Roll: ")
 data.roll.gui := MyGui.addEdit("ys w60")
 data.roll.gui.setFont("c0xe2e8f0 bold")
 data.roll.gui.Opt("+Background0x2563eb")
