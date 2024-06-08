@@ -14,6 +14,7 @@ data := {
     upc: { value: "<upc>" }, 
     style: { value: "...." },
     roll: { value: 1 },
+    delay: { value: 100 },
 }
 
 For key, val in data.OwnProps()
@@ -27,6 +28,8 @@ MyGui.SetFont("s14", "Verdana")
 MyGui.SetFont("s14", "Courier")
 MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
+
+Tab := MyGui.Add("Tab3",, ["Main", "Settings"])
 
 MyGui.AddGroupBox("w330 h310 cGray Section", "Data")
 
@@ -52,6 +55,19 @@ data.roll.gui.Opt("+Background0x2563eb")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
 MyGui.addText("x16", "Press ctrl+1 to output values")
+
+; ==== Settings Tab ====
+Tab.UseTab(2)
+
+MyGui.AddGroupBox("w330 H310 cGray Section", "main")
+
+MyGui.AddText("xp+20 yp+45 Section", "Delay")
+data.delay.gui := MyGui.AddEdit("ys w80")
+MyGui.AddUpDown("range1-9999 Wrap", data.delay.value)
+
+MyGui.AddText("ys", "ms")
+MyGui.AddCheckBox("xs Section", "Check Me")
+
 
 MyGui.Show("NA")
 
