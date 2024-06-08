@@ -1,10 +1,4 @@
 ﻿; =============================================================================
-; SETTINGS
-; =============================================================================
-dev := 1 ; set development or production mode
-;inputDelay := 100 ; ms between entering next line when outputting values
-
-; =============================================================================
 ; LOAD VARIABLES
 ; =============================================================================
 data := {
@@ -19,6 +13,8 @@ data := {
 
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
+
+dev := IniRead("config.ini", "main", "dev", 0) ; set development or production mode
 
 ; =============================================================================
 ; CREATE GUI
