@@ -62,10 +62,10 @@ data.delay.gui := MyGui.AddEdit("ys w80")
 MyGui.AddUpDown("range1-9999 Wrap", data.delay.value)
 
 MyGui.AddText("ys", "ms")
-MyGui.AddCheckBox("xs Section", "Check Me")
+autoStyleGui := MyGui.AddCheckBox("xs Section", "Check Me")
 
+MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 
-MyGui.Show("NA")
 
 ; =============================================================================
 ; SETUP EVENTS
@@ -73,15 +73,17 @@ MyGui.Show("NA")
 For key, val in data.OwnProps()
     data.%key%.gui.onEvent("Change", onDataUpdated.Bind(key, val))
 
-onDataUpdated(key, val, *) {
-    IniWrite(data.%key%.gui.value, "config.ini", "main", key)
-}
+;autoStyleGui.onEvent("Change", (*) => MsgBox("check changed to ", autoStyleGui.value))
 
 MyGui.OnEvent("Close", onClose)
 
 ; =============================================================================
 ; SETUP FUNCTIONS
 ; =============================================================================
+onDataUpdated(key, val, *) {
+    IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+}
+
 onPrint(*) {
     inputDelay := data.delay.gui.value
 
@@ -150,13 +152,13 @@ Setup:
 }
 
 ;// DEBUG
-if (dev) {
-    outputString := ""
-    For key, val in data.OwnProps()
-        outputString .= "[" key ": " val.value "]`n"
-    ToolTip(outputString)
-    SetTimer () => ToolTip(), -1200
-}
+; if (dev) {
+;     outputString := ""
+;     For key, val in data.OwnProps()
+;         outputString .= "[" key ": " val.value "]`n"
+;     ToolTip(outputString)
+;     SetTimer () => ToolTip(), -1200
+; }
 
 ; =============================================================================
 ; EXAMPLES
