@@ -109,6 +109,7 @@ lockStyle(*) {
 unlockStyle(*) {
     data.style.gui.Enabled := true
     data.style.text.setFont("cBlack")
+    data.style.gui.value := IniRead("config.ini", "main", "style", data.style.value)
 }
 
 onPrint(*) {
