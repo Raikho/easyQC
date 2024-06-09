@@ -30,7 +30,7 @@ MyGui.Title := "easyQC"
 
 Tab := MyGui.Add("Tab3",, ["Main", "Settings"])
 
-MyGui.AddGroupBox("w330 h310 cGray Section", "Data")
+MyGui.AddGroupBox("w330 h310 cGray Section", "data")
 
 MyGui.AddText("xp+20 yp+45 Section", "Initials: ")
 data.initials.gui := MyGui.AddEdit("ys w40 limit2", data.initials.value)
@@ -44,7 +44,7 @@ data.order.gui := MyGui.AddEdit("ys w170 number", data.order.value)
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
 
-MyGui.AddText("xs Section", "   Style: ")
+data.style.text := MyGui.AddText("xs Section", "   Style: ")
 data.style.gui := MyGui.AddEdit("ys w60 limit4", data.style.value)
 
 if (autoStyle.value)
@@ -61,7 +61,7 @@ MyGui.addText("x16", "Press ctrl+1 to output values")
 ; ==== Settings Tab ====
 Tab.UseTab(2)
 
-MyGui.AddGroupBox("w330 H310 cGray Section", "main")
+MyGui.AddGroupBox("w330 H310 cGray Section", "general")
 
 MyGui.AddText("xp+20 yp+45 Section", "Delay")
 data.delay.gui := MyGui.AddEdit("ys w80")
@@ -104,9 +104,11 @@ onAutoStyleUpdated(*) {
 lockStyle(*) {
     data.style.gui.Enabled := false
     data.style.gui.value := SubStr(data.upc.gui.value, -4)
+    data.style.text.setFont("cSilver")
 }
 unlockStyle(*) {
     data.style.gui.Enabled := true
+    data.style.text.setFont("cBlack")
 }
 
 onPrint(*) {
