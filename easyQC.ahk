@@ -88,6 +88,8 @@ MyGui.OnEvent("Close", onClose)
 ; =============================================================================
 onDataUpdated(key, val, *) {
     IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+    if (key = "upc")
+        data.style.gui.value := SubStr(data.upc.gui.value, -4)
 }
 
 onAutoStyleUpdated(*) {
@@ -101,6 +103,7 @@ onAutoStyleUpdated(*) {
 
 lockStyle(*) {
     data.style.gui.Enabled := false
+    data.style.gui.value := SubStr(data.upc.gui.value, -4)
 }
 unlockStyle(*) {
     data.style.gui.Enabled := true
