@@ -14,7 +14,10 @@ data := {
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
-dev := IniRead("config.ini", "main", "dev", 0) ; set development or production mode
+autoStyle:= { value: IniRead("config.ini", "main", "autoStyle", 0) }
+
+; set development or production mode
+dev := IniRead("config.ini", "main", "dev", 0)
 
 ; =============================================================================
 ; CREATE GUI
@@ -44,6 +47,9 @@ data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
 MyGui.AddText("xs Section", "   Style: ")
 data.style.gui := MyGui.AddEdit("ys w60 limit4", data.style.value)
 
+if (autoStyle.value)
+    lockStyle 
+
 MyGui.AddText("xs Section", "    Roll: ")
 data.roll.gui := MyGui.addEdit("ys w60")
 data.roll.gui.setFont("c0xe2e8f0 bold")
@@ -62,7 +68,7 @@ data.delay.gui := MyGui.AddEdit("ys w80")
 MyGui.AddUpDown("range1-9999 Wrap", data.delay.value)
 
 MyGui.AddText("ys", "ms")
-autoStyleGui := MyGui.AddCheckBox("xs Section", "Check Me")
+autoStyle.gui := MyGui.AddCheckBox("xs Section" . (true ? " checked" : ""), "Auto Style")
 
 MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 
@@ -73,15 +79,31 @@ MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 For key, val in data.OwnProps()
     data.%key%.gui.onEvent("Change", onDataUpdated.Bind(key, val))
 
-;autoStyleGui.onEvent("Change", (*) => MsgBox("check changed to ", autoStyleGui.value))
+autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 
 MyGui.OnEvent("Close", onClose)
 
 ; =============================================================================
-; SETUP FUNCTIONS
+; FUNCTIONS
 ; =============================================================================
 onDataUpdated(key, val, *) {
     IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+}
+
+onAutoStyleUpdated(*) {
+    val := autoStyle.gui.value
+    IniWrite(val, "config.ini", "main", "autoStyle")
+    if (val) 
+        lockStyle
+    else 
+        unlockStyle
+}
+
+lockStyle(*) {
+    data.style.gui.Enabled := false
+}
+unlockStyle(*) {
+    data.style.gui.Enabled := true
 }
 
 onPrint(*) {
