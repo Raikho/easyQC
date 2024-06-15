@@ -60,7 +60,7 @@ if (dev) {
     dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
     dev_text.SetFont("bold cRed")
 }
-MyGui.addText("x16", "Press ctrl+1 to output values")
+MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
 ; ==== Settings Tab ====
 Tab.UseTab(2)
