@@ -4,6 +4,8 @@
 data := {
     initials: { value: ".." }, 
     customer: { value:  "<customer>" },
+    preOrder: {value: "02001" },
+    postOrder: { value: "9999" },
     order: { value: "<order num>" },
     upc: { value: "<upc>" }, 
     style: { value: "...." },
@@ -39,7 +41,14 @@ MyGui.AddText("xs Section", "Customer: ")
 data.customer.gui := MyGui.AddEdit("ys w170", data.customer.value)
 
 MyGui.AddText("xs Section", "   Order: ")
-data.order.gui := MyGui.AddEdit("ys w170 number", data.order.value)
+data.preOrder.gui := MyGui.AddEdit("ys w82 number limit5", SubStr(data.order.value, 1, 5))
+data.preOrder.gui.Visible := true
+data.preOrder.gui.Enabled := false
+data.postOrder.gui := MyGui.AddEdit("ys w70 number limit4", SubStr(data.order.value, -4))
+data.postOrder.gui.Visible := true
+
+data.order.gui := MyGui.AddEdit("ys w170 number limit9", data.order.value)
+data.order.gui.Visible := false
 
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
