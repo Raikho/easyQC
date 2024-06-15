@@ -56,6 +56,10 @@ data.roll.gui.setFont("c0xe2e8f0 bold")
 data.roll.gui.Opt("+Background0x2563eb")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
+if (dev) {
+    dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
+    dev_text.SetFont("bold cRed")
+}
 MyGui.addText("x16", "Press ctrl+1 to output values")
 
 ; ==== Settings Tab ====
