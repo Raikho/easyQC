@@ -4,10 +4,10 @@
 data := {
     initials: { value: ".." }, 
     customer: { value:  "<customer>" },
-    preOrder: {value: "02001" },
-    postOrder: { value: "9999" },
-    order: { value: "<order num>" },
-    upc: { value: "<upc>" }, 
+    preOrder: {value: "20010" },
+    postOrder: { value: "...." },
+    order: { value: "20010...." },
+    upc: { value: "............" }, 
     style: { value: "...." },
     roll: { value: 1 },
     delay: { value: 100 },
@@ -16,8 +16,8 @@ data := {
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
-autoStyle:= { value: IniRead("config.ini", "main", "autoStyle", 0) }
-
+autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
+quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
 ; set development or production mode
 dev := IniRead("config.ini", "main", "dev", 0)
 
@@ -42,16 +42,14 @@ data.initials.gui := MyGui.AddEdit("ys w40 limit2", data.initials.value)
 MyGui.AddText("xs Section", "Customer: ")
 data.customer.gui := MyGui.AddEdit("ys w170", data.customer.value)
 
+; ==== Order ====
 MyGui.AddText("xs Section", "   Order: ")
 data.preOrder.gui := MyGui.AddEdit("ys w82 number limit5", SubStr(data.order.value, 1, 5))
-;data.preOrder.gui.Visible := true
 data.preOrder.gui.Enabled := false
 data.postOrder.gui := MyGui.AddEdit("ys w70 number limit4", SubStr(data.order.value, -4))
-;data.postOrder.gui.Visible := true
+data.order.gui := MyGui.AddEdit("ys x+-170 w170 number limit9", data.order.value)
 
-MyGui.AddText("xs Section", "----test: ")
-data.order.gui := MyGui.AddEdit("ys w170 number limit9", data.order.value)
-;data.order.gui.Visible := false
+setupQuickOrder(quickOrder.value)
 
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
@@ -68,13 +66,16 @@ data.roll.gui.setFont("c0xe2e8f0 bold")
 data.roll.gui.Opt("+Background0x2563eb")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
+
 if (dev) {
     dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
     dev_text.SetFont("bold cRed")
 }
 MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
-; ==== Settings Tab ====
+; =============================================================================
+; SETTINGS TAB ================================================================
+
 Tab.UseTab(2)
 
 MyGui.AddGroupBox("w330 H310 cGray Section", "general")
@@ -84,10 +85,11 @@ data.delay.gui := MyGui.AddEdit("ys w80")
 MyGui.AddUpDown("range1-9999 Wrap", data.delay.value)
 
 MyGui.AddText("ys", "ms")
-autoStyle.gui := MyGui.AddCheckBox("xs Section" . (true ? " checked" : ""), "Auto Style")
+autoStyle.gui := MyGui.AddCheckBox("xs Section" . (autoStyle.value ? " checked" : ""), "Auto Style")
+quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked" : ""), "Quick Order")
+
 
 MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
-
 
 ; =============================================================================
 ; SETUP EVENTS
@@ -96,6 +98,7 @@ For key, val in data.OwnProps()
     data.%key%.gui.onEvent("Change", onDataUpdated.Bind(key, val))
 
 autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
+quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 
 MyGui.OnEvent("Close", onClose)
 
@@ -128,6 +131,18 @@ onAutoStyleUpdated(*) {
         lockStyle
     else 
         unlockStyle
+}
+
+onQuickOrderUpdated(*) {
+    IniWrite(quickOrder.gui.value, "config.ini", "main", "quickOrder")
+    quickOrder.value := quickOrder.gui.value
+    setupQuickOrder(quickOrder.gui.value)
+}
+
+setupQuickOrder(val) {
+    data.preOrder.gui.Visible := val
+    data.postOrder.gui.Visible := val
+    data.order.gui.visible :=  !val
 }
 
 lockStyle(*) {
