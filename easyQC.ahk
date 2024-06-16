@@ -30,8 +30,13 @@ MyGui.SetFont("s14", "Verdana")
 MyGui.SetFont("s14", "Courier")
 MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
+;MyGui.BackColor := "f1f5f9"
 
 Tab := MyGui.Add("Tab3",, ["Main", "Settings"])
+;Tab.Opt("BackgroundWhite")
+
+; =============================================================================
+; Main TAB ================================================================
 
 MyGui.AddGroupBox("w330 h310 cGray Section", "data")
 
@@ -89,7 +94,6 @@ MyGui.AddText("ys", "ms")
 autoStyle.gui := MyGui.AddCheckBox("xs Section" . (autoStyle.value ? " checked" : ""), "Auto Style")
 quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked" : ""), "Quick Order")
 
-
 MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 
 ; =============================================================================
@@ -109,7 +113,7 @@ MyGui.OnEvent("Close", onClose)
 ; FUNCTIONS
 ; =============================================================================
 onDataUpdated(key, val, *) {
-    if (autoStyle.gui.value && key = "upc") ;// TODO:, only if option is selected?
+    if (autoStyle.gui.value && key = "upc")
         data.style.gui.value := SubStr(data.upc.gui.value, -4)
     if (key = "preOrder")
         return MsgBox("Error: preOrder was somehow updated using the gui)")
