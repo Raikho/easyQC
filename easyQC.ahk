@@ -114,8 +114,9 @@ onDataUpdated(key, val, *) {
     }
     if (key = "order") {
         val := data.order.gui.value
+        postLength := min((5 - StrLen(val)), 0)
         data.preOrder.gui.value := SubStr(val, 1, 5)
-        data.postOrder.gui.value := SubStr(val, -4)
+        data.postOrder.gui.value := SubStr(val, postLength)
     }
     IniWrite(data.%key%.gui.value, "config.ini", "main", key)
 }
