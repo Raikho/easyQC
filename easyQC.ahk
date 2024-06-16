@@ -21,6 +21,8 @@ autoStyle:= { value: IniRead("config.ini", "main", "autoStyle", 0) }
 ; set development or production mode
 dev := IniRead("config.ini", "main", "dev", 0)
 
+; // TODO: default button send tab: ButtonNext::Send {Tab}
+
 ; =============================================================================
 ; CREATE GUI
 ; =============================================================================
@@ -42,13 +44,14 @@ data.customer.gui := MyGui.AddEdit("ys w170", data.customer.value)
 
 MyGui.AddText("xs Section", "   Order: ")
 data.preOrder.gui := MyGui.AddEdit("ys w82 number limit5", SubStr(data.order.value, 1, 5))
-data.preOrder.gui.Visible := true
+;data.preOrder.gui.Visible := true
 data.preOrder.gui.Enabled := false
 data.postOrder.gui := MyGui.AddEdit("ys w70 number limit4", SubStr(data.order.value, -4))
-data.postOrder.gui.Visible := true
+;data.postOrder.gui.Visible := true
 
+MyGui.AddText("xs Section", "----test: ")
 data.order.gui := MyGui.AddEdit("ys w170 number limit9", data.order.value)
-data.order.gui.Visible := false
+;data.order.gui.Visible := false
 
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
@@ -100,9 +103,21 @@ MyGui.OnEvent("Close", onClose)
 ; FUNCTIONS
 ; =============================================================================
 onDataUpdated(key, val, *) {
-    IniWrite(data.%key%.gui.value, "config.ini", "main", key)
-    if (key = "upc")
+    if (key = "upc") ;// TODO:, only if option is selected?
         data.style.gui.value := SubStr(data.upc.gui.value, -4)
+    if (key = "preOrder")
+        return MsgBox("Error: preOrder was somehow updated using the gui)")
+    if (key = "postOrder") {
+        data.order.gui.value := data.preOrder.gui.value . data.postOrder.gui.value
+        IniWrite(data.order.gui.value, "config.ini", "main", "order")
+        return
+    }
+    if (key = "order") {
+        val := data.order.gui.value
+        data.preOrder.gui.value := SubStr(val, 1, 5)
+        data.postOrder.gui.value := SubStr(val, -4)
+    }
+    IniWrite(data.%key%.gui.value, "config.ini", "main", key)
 }
 
 onAutoStyleUpdated(*) {
