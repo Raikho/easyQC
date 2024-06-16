@@ -18,10 +18,9 @@ For key, val in data.OwnProps()
 
 autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
 quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
+
 ; set development or production mode
 dev := IniRead("config.ini", "main", "dev", 0)
-
-; // TODO: default button send tab: ButtonNext::Send {Tab}
 
 ; =============================================================================
 ; CREATE GUI
@@ -66,6 +65,8 @@ data.roll.gui.setFont("c0xe2e8f0 bold")
 data.roll.gui.Opt("+Background0x2563eb")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
+defaultButton := MyGui.AddButton("ys Default", "BUTTON")
+defaultButton.Visible := false
 
 if (dev) {
     dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
@@ -99,6 +100,8 @@ For key, val in data.OwnProps()
 
 autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
+
+defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 
 MyGui.OnEvent("Close", onClose)
 
