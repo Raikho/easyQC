@@ -109,7 +109,7 @@ MyGui.OnEvent("Close", onClose)
 ; FUNCTIONS
 ; =============================================================================
 onDataUpdated(key, val, *) {
-    if (key = "upc") ;// TODO:, only if option is selected?
+    if (autoStyle.gui.value && key = "upc") ;// TODO:, only if option is selected?
         data.style.gui.value := SubStr(data.upc.gui.value, -4)
     if (key = "preOrder")
         return MsgBox("Error: preOrder was somehow updated using the gui)")
