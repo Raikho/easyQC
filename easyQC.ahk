@@ -80,6 +80,10 @@ MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
 
+MyGui.AddGroupBox("xs-20 y+40 W330 h150 cGray Section", "actions")
+openButton := MyGui.AddButton("xp+20 yp+45 Section", "Open")
+startButton := MyGui.AddButton("xs Section", "Input")
+
 ; DEV MODE TEXT
 if (dev) {
     dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
