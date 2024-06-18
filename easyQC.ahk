@@ -42,9 +42,11 @@ MyGui.AddGroupBox("w330 h310 cGray Section", "data")
 
 MyGui.AddText("xp+20 yp+45 Section", "Initials: ")
 data.initials.gui := MyGui.AddEdit("ys w40 limit2", data.initials.value)
+data.initials.gui.Opt("Backgroundeff6ff")
 
 MyGui.AddText("xs Section", "Customer: ")
 data.customer.gui := MyGui.AddEdit("ys w170", data.customer.value)
+data.customer.gui.Opt("Backgroundeff6ff")
 
 ; ==== Order ====
 MyGui.AddText("xs Section", "   Order: ")
@@ -52,27 +54,33 @@ data.preOrder.gui := MyGui.AddEdit("ys w82 number limit5", SubStr(data.order.val
 data.preOrder.gui.Enabled := false
 data.postOrder.gui := MyGui.AddEdit("ys w70 number limit4", SubStr(data.order.value, -4))
 data.order.gui := MyGui.AddEdit("ys x+-170 w170 number limit9", data.order.value)
+data.preOrder.gui.Opt("Backgroundeff6ff")
+data.postOrder.gui.Opt("Backgroundeff6ff")
+data.order.gui.Opt("Backgroundeff6ff")
 
 setupQuickOrder(quickOrder.value)
 
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
+data.upc.gui.Opt("Backgroundeff6ff")
 
 data.style.text := MyGui.AddText("xs Section", "   Style: ")
 data.style.gui := MyGui.AddEdit("ys w60 limit4", data.style.value)
+data.style.gui.Opt("Backgroundeff6ff")
 
 if (autoStyle.value)
     lockStyle 
 
 MyGui.AddText("xs Section", "    Roll: ")
 data.roll.gui := MyGui.addEdit("ys w60")
-data.roll.gui.setFont("c0xe2e8f0 bold")
-data.roll.gui.Opt("+Background0x2563eb")
+data.roll.gui.setFont("")
+data.roll.gui.Opt("+Backgroundeff6ff")
 MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
 
 defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
 
+; DEV MODE TEXT
 if (dev) {
     dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
     dev_text.SetFont("bold cRed")
