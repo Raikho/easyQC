@@ -111,9 +111,12 @@ quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked
 
 Tab.UseTab(3)
 
-MyGui.AddGroupBox("w330 H310 cGray Section", "general")
+MyGui.AddGroupBox("w330 H100 cGray Section", "actions")
 
-; TO ADD: OrderNumber, UPC, QCBy, DATE, RollNum, Customer
+MyGui.AddButton("xp+20 yp+40 Section", "read")
+MyGui.AddButton("ys Section", "write")
+
+MyGui.AddGroupBox("xs-105 y+30 w330 H330 cGray Section", "data")
 
 MyGui.AddText("xp+20 yp+45 Section", " Order #:")
 MyGui.AddEdit("ys w80")
@@ -130,18 +133,11 @@ MyGui.AddEdit("ys w80")
 MyGui.AddText("xs Section", "  Roll #:")
 MyGui.AddEdit("ys w80")
 
-MyGui.AddText("xs Section", "Customer:")
+MyGui.AddText("xs Section", "Quantity:")
 MyGui.AddEdit("ys w80")
 
-
-;data.delay.gui := MyGui.AddEdit("ys w80")
-;MyGui.AddUpDown("range1-9999 Wrap", data.delay.value)
-
-;MyGui.AddText("ys", "ms")
-;autoStyle.gui := MyGui.AddCheckBox("xs Section" . (autoStyle.value ? " checked" : ""), "Auto Style")
-;quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked" : ""), "Quick Order")
-
-;MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
+MyGui.AddText("xs Section", "Customer:")
+MyGui.AddEdit("ys w80")
 
 ; =============================================================================
 
