@@ -32,12 +32,14 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
 ;MyGui.BackColor := "f1f5f9"
 
-Tab := MyGui.Add("Tab3",, ["Main", "Settings", "Label"])
+defaultTab := 3 ; // DEBUG
+Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Settings", "Label"])
 ;Tab.Opt("BackgroundWhite")
 
 ; =============================================================================
 ; Main TAB ================================================================
 
+Tab.UseTab(1)
 MyGui.AddGroupBox("w330 h310 cGray Section", "data")
 
 MyGui.AddText("xp+20 yp+45 Section", "Initials: ")
@@ -113,8 +115,8 @@ Tab.UseTab(3)
 
 MyGui.AddGroupBox("w330 H100 cGray Section", "actions")
 
-MyGui.AddButton("xp+20 yp+40 Section", "read")
-MyGui.AddButton("ys Section", "write")
+readButton := MyGui.AddButton("xp+20 yp+40 Section", "read")
+writeButton := MyGui.AddButton("ys Section", "write")
 
 MyGui.AddGroupBox("xs-105 y+30 w330 H330 cGray Section", "data")
 
@@ -155,6 +157,8 @@ quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 openButton.onEvent("Click", onOpen)
 startButton.onEvent("Click", onStart)
+readButton.onEvent("Click", onRead)
+writeButton.onEvent("Click", onWrite)
 
 MyGui.OnEvent("Close", onClose)
 
@@ -230,6 +234,14 @@ onOpen(*) {
 
 onStart(*) {
     MsgBox("Should input commands into cmd window when pressed, still in progress")
+}
+
+onRead(*) {
+    MsgBox("reading...")
+}
+
+onWrite(*) {
+    MsgBox("writing...")
 }
 
 onPrint(*) {
