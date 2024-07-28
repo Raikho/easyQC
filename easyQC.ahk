@@ -75,7 +75,7 @@ MyGui.AddText("xs Section", "    Roll: ")
 data.roll.gui := MyGui.addEdit("ys w60")
 data.roll.gui.setFont("")
 data.roll.gui.Opt("+Backgroundeff6ff")
-MyGui.AddUpDown("Range1-40 Wrap", data.roll.value)
+MyGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
 defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
@@ -118,6 +118,8 @@ autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
+openButton.onEvent("Click", onOpen)
+startButton.onEvent("Click", onStart)
 
 MyGui.OnEvent("Close", onClose)
 
@@ -173,6 +175,26 @@ unlockStyle(*) {
     data.style.gui.Enabled := true
     data.style.text.setFont("cBlack")
     data.style.gui.value := IniRead("config.ini", "main", "style", data.style.value)
+}
+
+onOpen(*) {
+    ; ahk_class: ConsoleWindowClass
+    ; ahk_exe: cmd.exe
+    ; title: Selet RFIDQAR420 - 420
+
+    ; shell := ComObject("WScript.Shell")
+    ; exec := shell.Exec(A_ComSpec " /C " "whoami")
+    ; output := exec.StdOut.ReadAll()
+    ; MsgBox(output)
+
+    ; pid := "0"
+    ; Run("cmd.exe",,, &pid)
+    ; WinWait("ahk_pid " . pid)
+    ;MsgBox(pid . ", Should open cmd window when pressed, still in progress")
+}
+
+onStart(*) {
+    MsgBox("Should input commands into cmd window when pressed, still in progress")
 }
 
 onPrint(*) {
