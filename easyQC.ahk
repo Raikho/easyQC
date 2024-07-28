@@ -237,11 +237,34 @@ onStart(*) {
 }
 
 onRead(*) {
-    MsgBox("reading...")
+    csv := {}
+
+    Loop read, "test/PACKLABEL.csv" {
+        line := A_Index
+
+        Loop parse, A_LoopReadLine, "CSV" {
+            i := A_Index
+
+            if (line == 1) 
+                csv.%A_LoopField% := {index: i, value: ""}
+            else if (line == 2)
+                For key, val in csv.OwnProps()
+                    if (csv.%key%.index == i)
+                        csv.%key%.value := A_LoopField
+        }
+    }
+    printCsv(csv)
+}
+
+printCsv(csv) {
+    out := ""
+    for key, val in csv.OwnProps()
+        out .= csv.%key%.index . " - " . key . ": " . csv.%key%.value . "`n" 
+    MsgBox(out)
 }
 
 onWrite(*) {
-    MsgBox("writing...")
+    MsgBox("still have to add write implementation")
 }
 
 onPrint(*) {
