@@ -32,7 +32,7 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
 ;MyGui.BackColor := "f1f5f9"
 
-defaultTab := 3 ; // DEBUG
+defaultTab := (dev) ? 3 : 1 ; // DEBUG: 3rd tab
 Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Settings", "Label"])
 ;Tab.Opt("BackgroundWhite")
 
@@ -276,6 +276,7 @@ onPrint(*) {
     Sleep inputDelay
     SendInput data.order.gui.value "{enter}"
     Sleep inputDelay
+    ; // TODO: make sure still works if empty
     SendInput data.upc.gui.value "{enter}"
     Sleep inputDelay
     SendInput data.style.gui.value "{enter}"
