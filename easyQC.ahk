@@ -1,13 +1,20 @@
-﻿; =============================================================================
+﻿; TODO:
+; Samples Mode
+; Ability for empty UPCs
+; Printer initials hotkeys
+; Opening QC program
+; Printer scanning
+
+; =============================================================================
 ; LOAD VARIABLES
 ; =============================================================================
 data := {
-    initials: { value: ".." }, 
-    customer: { value:  "<customer>" },
-    preOrder: {value: "20010" },
+    initials: { value: ".." },
+    customer: { value: "<customer>" },
+    preOrder: { value: "20010" },
     postOrder: { value: "...." },
     order: { value: "20010...." },
-    upc: { value: "............" }, 
+    upc: { value: "............" },
     style: { value: "...." },
     roll: { value: 1 },
     delay: { value: 100 },
@@ -71,7 +78,7 @@ data.style.gui := MyGui.AddEdit("ys w60 limit4", data.style.value)
 data.style.gui.Opt("Backgroundeff6ff")
 
 if (autoStyle.value)
-    lockStyle 
+    lockStyle
 
 MyGui.AddText("xs Section", "    Roll: ")
 data.roll.gui := MyGui.addEdit("ys w60")
@@ -187,9 +194,9 @@ onDataUpdated(key, val, *) {
 onAutoStyleUpdated(*) {
     val := autoStyle.gui.value
     IniWrite(val, "config.ini", "main", "autoStyle")
-    if (val) 
+    if (val)
         lockStyle
-    else 
+    else
         unlockStyle
 }
 
@@ -202,7 +209,7 @@ onQuickOrderUpdated(*) {
 setupQuickOrder(val) {
     data.preOrder.gui.Visible := val
     data.postOrder.gui.Visible := val
-    data.order.gui.visible :=  !val
+    data.order.gui.visible := !val
 }
 
 lockStyle(*) {
@@ -245,8 +252,8 @@ onRead(*) {
         Loop parse, A_LoopReadLine, "CSV" {
             i := A_Index
 
-            if (line == 1) 
-                csv.%A_LoopField% := {index: i, value: ""}
+            if (line == 1)
+                csv.%A_LoopField% := { index: i, value: "" }
             else if (line == 2)
                 For key, val in csv.OwnProps()
                     if (csv.%key%.index == i)
@@ -259,7 +266,7 @@ onRead(*) {
 printCsv(csv) {
     out := ""
     for key, val in csv.OwnProps()
-        out .= csv.%key%.index . " - " . key . ": " . csv.%key%.value . "`n" 
+        out .= csv.%key%.index . " - " . key . ": " . csv.%key%.value . "`n"
     MsgBox(out)
 }
 
@@ -296,7 +303,7 @@ onClose(*) {
         ExitApp
 }
 
-^1::onPrint()
+^1:: onPrint()
 
 addDebugNotification(*) {
     TrayTip(
@@ -311,7 +318,7 @@ addDebugNotification(*) {
         "Running: " A_ScriptName,
         4
     )
-        
+
     SetTimer () => TrayTip(), -5000
 }
 
@@ -319,61 +326,61 @@ addDebugNotification(*) {
 ; MISC
 ; =============================================================================
 Setup:
-{
-    #Requires AutoHotkey v2.0+
-    #SingleInstance force
-}
-
-; Helpful Development live reload
-~^s::
-{
-    if (dev) {
-        Sleep 100
-        Reload
-        Sleep 1000
-        MsgBox("The script could not be reloaded.")
+    {
+        #Requires AutoHotkey v2.0+
+        #SingleInstance force
     }
-}
 
-;// DEBUG
-; if (dev) {
-;     outputString := ""
-;     For key, val in data.OwnProps()
-;         outputString .= "[" key ": " val.value "]`n"
-;     ToolTip(outputString)
-;     SetTimer () => ToolTip(), -1200
-; }
+    ; Helpful Development live reload
+    ~^s::
+    {
+        if (dev) {
+            Sleep 100
+            Reload
+            Sleep 1000
+            MsgBox("The script could not be reloaded.")
+        }
+    }
 
-; =============================================================================
-; EXAMPLES
-; =============================================================================
-; [^ => Ctrl] [! => Alt] [+ => Shift]
-; [# => Win] [_ & _ => (combo hotkey)]
+    ;// DEBUG
+    ; if (dev) {
+    ;     outputString := ""
+    ;     For key, val in data.OwnProps()
+    ;         outputString .= "[" key ": " val.value "]`n"
+    ;     ToolTip(outputString)
+    ;     SetTimer () => ToolTip(), -1200
+    ; }
 
-; #HotIf WinActive("ahk_class MozillaWindowClass")
-; ^1::Send "This is Firef"
-; ^3::WinMaximize "A"
-; :*:ftw::Free the Whales ; Hotstring
+    ; =============================================================================
+    ; EXAMPLES
+    ; =============================================================================
+    ; [^ => Ctrl] [! => Alt] [+ => Shift]
+    ; [# => Win] [_ & _ => (combo hotkey)]
 
-; ^a::
-; {
-;    TrayTip(
-;        (
-;            "Initials:`t`t" "MZ" "`n"
-;             "Customer:`t" "Alltag" "`n"
-;             "Upc:`t`t" "6382" "`n"
-;         ),
-;         "Running: " A_ScriptName "`nHotkey  : " A_ThisHotkey,
-;         4
-;     )
-;     SetTimer () => TrayTip(), -5000
-; }
+    ; #HotIf WinActive("ahk_class MozillaWindowClass")
+    ; ^1::Send "This is Firef"
+    ; ^3::WinMaximize "A"
+    ; :*:ftw::Free the Whales ; Hotstring
 
-; ^2::
-; {
-;     ans := InputBox("What is your first name?")
-;     TrayTip ("Hi, " ans.value)
-;     SetTimer () => TrayTip(), -5000
-; }
+    ; ^a::
+    ; {
+    ;    TrayTip(
+    ;        (
+    ;            "Initials:`t`t" "MZ" "`n"
+    ;             "Customer:`t" "Alltag" "`n"
+    ;             "Upc:`t`t" "6382" "`n"
+    ;         ),
+    ;         "Running: " A_ScriptName "`nHotkey  : " A_ThisHotkey,
+    ;         4
+    ;     )
+    ;     SetTimer () => TrayTip(), -5000
+    ; }
 
-; !+^x::Run A_Desktop "\Some_Program\Program.exe"
+    ; ^2::
+    ; {
+    ;     ans := InputBox("What is your first name?")
+    ;     TrayTip ("Hi, " ans.value)
+    ;     SetTimer () => TrayTip(), -5000
+    ; }
+
+    ; !+^x::Run A_Desktop "\Some_Program\Program.exe"
