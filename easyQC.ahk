@@ -273,7 +273,6 @@ onRead(*) {
                         csv.%key%.value := A_LoopField
         }
     }
-    ; printCsv(csv) ; DEBUG
     updateCsv(csv)
 }
 
@@ -295,7 +294,13 @@ updateCsv(csv) {
 }
 
 onWrite(*) {
-    MsgBox("still have to add write implementation")
+    ;MsgBox("still have to add write implementation")
+    file := FileOpen("test/PACKLABEL.csv", "w")
+    newText := ""
+    for key, val in labelData.OwnProps()
+        newText .= labelData.%key%.gui.value . " - " . key . ": " . labelData.%key%.gui.value . "`n"
+    file.Write(newText)
+    file.Close()
 }
 
 onPrint(*) {
