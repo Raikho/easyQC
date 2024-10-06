@@ -24,13 +24,13 @@ For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 labelData := {
-    order: { value: ".", title: "Order#" },
-    upc: { value: "..", title: "UPC" },
-    initials: { value: "...", title: "QC By" },
-    date: { value: ".", title: "Date" },
-    roll: { value: "..", title: "Roll" },
-    quantity: { value: "...", title: "Qty" },
-    customer: { value: ".", title: "Customer" },
+    order: { value: "", title: "Order#", index: 1 },
+    upc: { value: "", title: "Upc", index: 2 },
+    initials: { value: "", title: "QC By", index: 3 },
+    date: { value: "", title: "Date", index: 4 },
+    roll: { value: "", title: "Roll #", index: 5 },
+    quantity: { value: "", title: "Qty", index: 6 },
+    customer: { value: "", title: "Customer", index: 7 },
 }
 
 For key, val in labelData.OwnProps()
@@ -288,24 +288,25 @@ updateCsv(csv) {
     labelData.upc.gui.value := csv.Upc.value
     labelData.initials.gui.value := csv.%"QC By"%.value
     labelData.date.gui.value := csv.Date.value
-    labelData.roll.gui.value := csv.Roll.value
+    labelData.roll.gui.value := csv.%"Roll #"%.value
     labelData.quantity.gui.value := csv.Qty.value
     labelData.customer.gui.value := csv.Customer.value
 }
 
 onWrite(*) {
-    ;MsgBox("still have to add write implementation")
-    file := FileOpen("test/PACKLABEL.csv", "w")
-    newText := ""
+    file := FileOpen("test/PACKLABEL.csv", "w") ; TODO: add path option
+    out := ""
 
-    for key, val in labelData.OwnProps()
-        newText .= "`"" . labelData.%key%.title . "`","
-    newText .= "`n"
-    for key, val in labelData.OwnProps()
-        newText .= "`"" . labelData.%key%.gui.value . "`","
+    out .= "`"Order#`",`"Upc`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
+    out .= "`"" . labelData.order.gui.value . "`"" . ","
+    out .= "`"" . labelData.upc.gui.value . "`"" . ","
+    out .= "`"" . labelData.initials.gui.value . "`"" . ","
+    out .= "`"" . labelData.date.gui.value . "`"" . ","
+    out .= "`"" . labelData.roll.gui.value . "`"" . ","
+    out .= "`"" . labelData.quantity.gui.value . "`"" . ","
+    out .= "`"" . labelData.customer.gui.value . "`""
 
-
-    file.Write(newText)
+    file.Write(out)
     file.Close()
 }
 
