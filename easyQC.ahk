@@ -23,6 +23,19 @@ data := {
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
+labelData := {
+    order: { value: "." },
+    upc: { value: ".." },
+    initials: { value: "..." },
+    date: { value: "." },
+    roll: { value: ".." },
+    quantity: { value: "..." },
+    customer: { value: "." },
+}
+
+For key, val in labelData.OwnProps()
+    labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
+
 autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
 quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
 
@@ -127,26 +140,26 @@ writeButton := MyGui.AddButton("ys Section", "write")
 
 MyGui.AddGroupBox("xs-105 y+30 w330 H330 cGray Section", "data")
 
-MyGui.AddText("xp+20 yp+45 Section", " Order #:")
-MyGui.AddEdit("ys w80")
+MyGui.AddText("xp+20 yp+45 Section", "  Order#:")
+labelData.order.gui := MyGui.AddEdit("ys w160", labelData.order.value)
 
 MyGui.AddText("xs Section", "     UPC:")
-MyGui.AddEdit("ys w80")
+labelData.upc.gui := MyGui.AddEdit("ys w160", labelData.upc.value)
 
-MyGui.AddText("xs Section", "   QC BY:")
-MyGui.AddEdit("ys w80")
+MyGui.AddText("xs Section", "   QC By:")
+labelData.initials.gui := MyGui.AddEdit("ys w80", labelData.initials.value)
 
 MyGui.AddText("xs Section", "    Date:")
-MyGui.AddEdit("ys w80")
+labelData.date.gui := MyGui.AddEdit("ys w120", labelData.date.value)
 
-MyGui.AddText("xs Section", "  Roll #:")
-MyGui.AddEdit("ys w80")
+MyGui.AddText("xs Section", "    Roll:")
+labelData.roll.gui := MyGui.AddEdit("ys w80", labelData.roll.value)
 
-MyGui.AddText("xs Section", "Quantity:")
-MyGui.AddEdit("ys w80")
+MyGui.AddText("xs Section", "     Qty:")
+labelData.quantity.gui := MyGui.AddEdit("ys w80", labelData.quantity.value)
 
 MyGui.AddText("xs Section", "Customer:")
-MyGui.AddEdit("ys w80")
+labelData.customer.gui := MyGui.AddEdit("ys w160", labelData.customer.value)
 
 ; =============================================================================
 
@@ -260,7 +273,8 @@ onRead(*) {
                         csv.%key%.value := A_LoopField
         }
     }
-    printCsv(csv)
+    ; printCsv(csv) ; DEBUG
+    updateCsv(csv)
 }
 
 printCsv(csv) {
@@ -268,6 +282,16 @@ printCsv(csv) {
     for key, val in csv.OwnProps()
         out .= csv.%key%.index . " - " . key . ": " . csv.%key%.value . "`n"
     MsgBox(out)
+}
+
+updateCsv(csv) {
+    labelData.order.gui.value := csv.%"Order#"%.value
+    labelData.upc.gui.value := csv.Upc.value
+    labelData.initials.gui.value := csv.%"QC By"%.value
+    labelData.date.gui.value := csv.Date.value
+    labelData.roll.gui.value := csv.Roll.value
+    labelData.quantity.gui.value := csv.Qty.value
+    labelData.customer.gui.value := csv.Customer.value
 }
 
 onWrite(*) {
