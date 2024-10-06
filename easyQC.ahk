@@ -8,6 +8,9 @@
 ; =============================================================================
 ; LOAD VARIABLES
 ; =============================================================================
+; set development or production mode
+dev := IniRead("config.ini", "main", "dev", 0)
+
 data := {
     initials: { value: ".." },
     customer: { value: "<customer>" },
@@ -32,15 +35,15 @@ labelData := {
     quantity: { value: "", title: "Qty", index: 6 },
     customer: { value: "", title: "Customer", index: 7 },
 }
+labelCsvPath := (dev)
+    ? IniRead("config.ini", "label", "debugPath")
+    : IniRead("config.ini", "label", "path")
 
 For key, val in labelData.OwnProps()
     labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
 
 autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
 quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
-
-; set development or production mode
-dev := IniRead("config.ini", "main", "dev", 0)
 
 ; =============================================================================
 ; CREATE GUI
@@ -259,20 +262,27 @@ onStart(*) {
 onRead(*) {
     csv := {}
 
-    Loop read, "test/PACKLABEL.csv" {
-        line := A_Index
+    try {
+        Loop read, labelCsvPath {
+            line := A_Index
 
-        Loop parse, A_LoopReadLine, "CSV" {
-            i := A_Index
+            Loop parse, A_LoopReadLine, "CSV" {
+                i := A_Index
 
-            if (line == 1)
-                csv.%A_LoopField% := { index: i, value: "" }
-            else if (line == 2)
-                For key, val in csv.OwnProps()
-                    if (csv.%key%.index == i)
-                        csv.%key%.value := A_LoopField
+                if (line == 1)
+                    csv.%A_LoopField% := { index: i, value: "" }
+                else if (line == 2)
+                    For key, val in csv.OwnProps()
+                        if (csv.%key%.index == i)
+                            csv.%key%.value := A_LoopField
+            }
         }
     }
+    catch Error as e {
+        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct and the csv file has the correct format.")
+        return
+    }
+
     updateCsv(csv)
 }
 
@@ -294,7 +304,7 @@ updateCsv(csv) {
 }
 
 onWrite(*) {
-    file := FileOpen("test/PACKLABEL.csv", "w") ; TODO: add path option
+    file := FileOpen(labelCsvPath, "w") ; TODO: add path option
     out := ""
 
     out .= "`"Order#`",`"Upc`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
