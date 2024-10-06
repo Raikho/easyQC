@@ -24,13 +24,13 @@ For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 labelData := {
-    order: { value: "." },
-    upc: { value: ".." },
-    initials: { value: "..." },
-    date: { value: "." },
-    roll: { value: ".." },
-    quantity: { value: "..." },
-    customer: { value: "." },
+    order: { value: ".", title: "Order#" },
+    upc: { value: "..", title: "UPC" },
+    initials: { value: "...", title: "QC By" },
+    date: { value: ".", title: "Date" },
+    roll: { value: "..", title: "Roll" },
+    quantity: { value: "...", title: "Qty" },
+    customer: { value: ".", title: "Customer" },
 }
 
 For key, val in labelData.OwnProps()
@@ -297,8 +297,14 @@ onWrite(*) {
     ;MsgBox("still have to add write implementation")
     file := FileOpen("test/PACKLABEL.csv", "w")
     newText := ""
+
     for key, val in labelData.OwnProps()
-        newText .= labelData.%key%.gui.value . " - " . key . ": " . labelData.%key%.gui.value . "`n"
+        newText .= "`"" . labelData.%key%.title . "`","
+    newText .= "`n"
+    for key, val in labelData.OwnProps()
+        newText .= "`"" . labelData.%key%.gui.value . "`","
+
+
     file.Write(newText)
     file.Close()
 }
