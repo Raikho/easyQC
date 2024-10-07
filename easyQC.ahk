@@ -22,22 +22,28 @@ data := {
     roll: { value: 1 },
     delay: { value: 100 },
 }
+rfidPath := (dev)
+    ? IniRead("config.ini", "main", "debugPath", "cmd.exe")
+    : IniRead("config.ini", "main", "path", "C:\RFID\PROG\RFIDQAR420.exe")
+rfidPathDir := (dev)
+    ? IniRead("config.ini", "main", "debugPathDir", ".\")
+    : IniRead("config.ini", "main", "pathDir", "C:\RFID\PROG\")
 
 For key, val in data.OwnProps()
     data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 labelData := {
-    order: { value: "", title: "Order#", index: 1 },
-    upc: { value: "", title: "Upc", index: 2 },
-    initials: { value: "", title: "QC By", index: 3 },
-    date: { value: "", title: "Date", index: 4 },
-    roll: { value: "", title: "Roll #", index: 5 },
-    quantity: { value: "", title: "Qty", index: 6 },
-    customer: { value: "", title: "Customer", index: 7 },
+    order: { value: "20010....", title: "Order#", index: 1 },
+    upc: { value: "............", title: "Upc", index: 2 },
+    initials: { value: "..", title: "QC By", index: 3 },
+    date: { value: "../../..", title: "Date", index: 4 },
+    roll: { value: "1", title: "Roll #", index: 5 },
+    quantity: { value: "....", title: "Qty", index: 6 },
+    customer: { value: "<customer>", title: "Customer", index: 7 },
 }
 labelCsvPath := (dev)
-    ? IniRead("config.ini", "label", "debugPath")
-    : IniRead("config.ini", "label", "path")
+    ? IniRead("config.ini", "label", "debugPath", "test/RFID-PACKLABEL.csv")
+    : IniRead("config.ini", "label", "path", "C:\RFID\PACKLABEL\RFID-PACKLABEL.csv")
 
 For key, val in labelData.OwnProps()
     labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
@@ -55,8 +61,8 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := "easyQC"
 ;MyGui.BackColor := "f1f5f9"
 
-defaultTab := (dev) ? 3 : 1 ; // DEBUG: 3rd tab
-Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Settings", "Label"])
+defaultTab := (dev) ? 1 : 1 ; // DEBUG:
+Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Label", "Settings"])
 ;Tab.Opt("BackgroundWhite")
 
 ; =======================================================================================
@@ -105,9 +111,9 @@ MyGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
 
-MyGui.AddGroupBox("xs-20 y+40 W330 h150 cGray Section", "actions")
-openButton := MyGui.AddButton("xp+20 yp+45 Section", "Open")
-startButton := MyGui.AddButton("xs Section", "Input")
+MyGui.AddGroupBox("xs-20 y+40 W330 h85 cGray Section", "actions")
+startButton := MyGui.AddButton("xp+20 yp+30 Section", "open")
+;startButton := MyGui.AddButton("ys Section", "Input")
 
 ; DEV MODE TEXT
 if (dev) {
@@ -119,7 +125,7 @@ MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 ; =======================================================================================
 ; SETTINGS TAB ==========================================================================
 
-Tab.UseTab(2)
+Tab.UseTab(3)
 
 MyGui.AddGroupBox("w330 H310 cGray Section", "general")
 
@@ -134,7 +140,7 @@ quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked
 ; =======================================================================================
 ; Label TAB =============================================================================
 
-Tab.UseTab(3)
+Tab.UseTab(2)
 
 MyGui.AddGroupBox("w330 H120 cGray Section", "actions")
 
@@ -156,7 +162,7 @@ MyGui.AddText("xs Section", "   QC By:")
 labelData.initials.gui := MyGui.AddEdit("ys w80", labelData.initials.value)
 
 MyGui.AddText("xs Section", "    Date:")
-labelData.date.gui := MyGui.AddEdit("ys w160", labelData.date.value)
+labelData.date.gui := MyGui.AddEdit("ys w140", labelData.date.value)
 
 MyGui.AddText("xs Section", "    Roll:")
 labelData.roll.gui := MyGui.AddEdit("ys w80", labelData.roll.value)
@@ -184,8 +190,7 @@ autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
-openButton.onEvent("Click", onOpen)
-startButton.onEvent("Click", onStart)
+startButton.onEvent("Click", onOpen)
 readButton.onEvent("Click", onRead)
 writeButton.onEvent("Click", onWrite)
 
@@ -259,14 +264,18 @@ onOpen(*) {
     ; output := exec.StdOut.ReadAll()
     ; MsgBox(output)
 
-    ; pid := "0"
-    ; Run("cmd.exe",,, &pid)
-    ; WinWait("ahk_pid " . pid)
-    ;MsgBox(pid . ", Should open cmd window when pressed, still in progress")
+
+    pid := 0
+    Run(rfidPath, rfidPathDir, , &pid)
+    WinWaitActive(pid)
+    Sleep(500)
+
+    SendInput WinActive(pid)
+    ;onStart()
 }
 
 onStart(*) {
-    MsgBox("Should input commands into cmd window when pressed, still in progress")
+    onPrint()
 }
 
 onRead(*) {
