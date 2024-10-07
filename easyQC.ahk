@@ -5,9 +5,9 @@
 ; Opening QC program
 ; Printer scanning
 
-; =============================================================================
-; LOAD VARIABLES
-; =============================================================================
+; =======================================================================================
+; LOAD VARIABLES ========================================================================
+; =======================================================================================
 ; set development or production mode
 dev := IniRead("config.ini", "main", "dev", 0)
 
@@ -45,9 +45,9 @@ For key, val in labelData.OwnProps()
 autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
 quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
 
-; =============================================================================
-; CREATE GUI
-; =============================================================================
+; =======================================================================================
+; CREATE GUI ============================================================================
+; =======================================================================================
 MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
 MyGui.SetFont("s14", "Courier")
@@ -59,8 +59,8 @@ defaultTab := (dev) ? 3 : 1 ; // DEBUG: 3rd tab
 Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Settings", "Label"])
 ;Tab.Opt("BackgroundWhite")
 
-; =============================================================================
-; Main TAB ================================================================
+; =======================================================================================
+; Main TAB ==============================================================================
 
 Tab.UseTab(1)
 MyGui.AddGroupBox("w330 h310 cGray Section", "data")
@@ -116,8 +116,8 @@ if (dev) {
 }
 MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
-; =============================================================================
-; SETTINGS TAB ================================================================
+; =======================================================================================
+; SETTINGS TAB ==========================================================================
 
 Tab.UseTab(2)
 
@@ -131,15 +131,18 @@ MyGui.AddText("ys", "ms")
 autoStyle.gui := MyGui.AddCheckBox("xs Section" . (autoStyle.value ? " checked" : ""), "Auto Style")
 quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked" : ""), "Quick Order")
 
-; =============================================================================
-; Label TAB ===================================================================
+; =======================================================================================
+; Label TAB =============================================================================
 
 Tab.UseTab(3)
 
-MyGui.AddGroupBox("w330 H100 cGray Section", "actions")
+MyGui.AddGroupBox("w330 H120 cGray Section", "actions")
 
 readButton := MyGui.AddButton("xp+20 yp+40 Section", "read")
 writeButton := MyGui.AddButton("ys Section", "write")
+MyGui.SetFont("s8")
+MyGui.AddText("x60 y+15 cGray", "path: " . labelCsvPath)
+MyGui.SetFont("s14")
 
 MyGui.AddGroupBox("xs-105 y+30 w330 H330 cGray Section", "data")
 
@@ -153,7 +156,7 @@ MyGui.AddText("xs Section", "   QC By:")
 labelData.initials.gui := MyGui.AddEdit("ys w80", labelData.initials.value)
 
 MyGui.AddText("xs Section", "    Date:")
-labelData.date.gui := MyGui.AddEdit("ys w120", labelData.date.value)
+labelData.date.gui := MyGui.AddEdit("ys w160", labelData.date.value)
 
 MyGui.AddText("xs Section", "    Roll:")
 labelData.roll.gui := MyGui.AddEdit("ys w80", labelData.roll.value)
@@ -164,15 +167,18 @@ labelData.quantity.gui := MyGui.AddEdit("ys w80", labelData.quantity.value)
 MyGui.AddText("xs Section", "Customer:")
 labelData.customer.gui := MyGui.AddEdit("ys w160", labelData.customer.value)
 
-; =============================================================================
+; =======================================================================================
 
 MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 
-; =============================================================================
-; SETUP EVENTS
-; =============================================================================
+; =======================================================================================
+; SETUP EVENTS ==========================================================================
+; =======================================================================================
 For key, val in data.OwnProps()
     data.%key%.gui.onEvent("Change", onDataUpdated.Bind(key, val))
+
+For key, val in labelData.OwnProps()
+    labelData.%key%.gui.onEvent("Change", onLabelDataUpdated.Bind(key, val))
 
 autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
@@ -185,9 +191,9 @@ writeButton.onEvent("Click", onWrite)
 
 MyGui.OnEvent("Close", onClose)
 
-; =============================================================================
-; FUNCTIONS
-; =============================================================================
+; =======================================================================================
+; FUNCTIONS =============================================================================
+; =======================================================================================
 onDataUpdated(key, val, *) {
     if (autoStyle.gui.value && key = "upc")
         data.style.gui.value := SubStr(data.upc.gui.value, -4)
@@ -205,6 +211,10 @@ onDataUpdated(key, val, *) {
         data.postOrder.gui.value := SubStr(val, postLength)
     }
     IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+}
+
+onLabelDataUpdated(key, val, *) {
+    IniWrite(labelData.%key%.gui.value, "config.ini", "label", key)
 }
 
 onAutoStyleUpdated(*) {
@@ -279,11 +289,17 @@ onRead(*) {
         }
     }
     catch Error as e {
-        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct and the csv file has the correct format.")
+        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . labelCsvPath . "`nAlso check that the csv file is in the correct format.")
         return
     }
 
     updateCsv(csv)
+    saveCsv(csv)
+}
+
+saveCsv(csv) {
+    for key, val in labelData.OwnProps()
+        onLabelDataUpdated(key, val)
 }
 
 printCsv(csv) {
@@ -368,9 +384,9 @@ addDebugNotification(*) {
     SetTimer () => TrayTip(), -5000
 }
 
-; =============================================================================
-; MISC
-; =============================================================================
+; =======================================================================================
+; MISC ==================================================================================
+; =======================================================================================
 Setup:
     {
         #Requires AutoHotkey v2.0+
@@ -397,9 +413,9 @@ Setup:
     ;     SetTimer () => ToolTip(), -1200
     ; }
 
-    ; =============================================================================
-    ; EXAMPLES
-    ; =============================================================================
+    ; ===================================================================================
+    ; EXAMPLES ==========================================================================
+    ; ===================================================================================
     ; [^ => Ctrl] [! => Alt] [+ => Shift]
     ; [# => Win] [_ & _ => (combo hotkey)]
 
