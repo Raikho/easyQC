@@ -320,7 +320,7 @@ printCsv(csv) {
 
 updateCsv(csv) {
     labelData.order.gui.value := csv.%"Order#"%.value
-    labelData.upc.gui.value := csv.Upc.value
+    labelData.upc.gui.value := csv.UPC.value
     labelData.initials.gui.value := csv.%"QC By"%.value
     labelData.date.gui.value := csv.Date.value
     labelData.roll.gui.value := csv.%"Roll #"%.value
@@ -332,7 +332,7 @@ onWrite(*) {
     file := FileOpen(labelCsvPath, "w") ; TODO: add path option
     out := ""
 
-    out .= "`"Order#`",`"Upc`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
+    out .= "`"Order#`",`"UPC`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
     out .= "`"" . labelData.order.gui.value . "`"" . ","
     out .= "`"" . labelData.upc.gui.value . "`"" . ","
     out .= "`"" . labelData.initials.gui.value . "`"" . ","
