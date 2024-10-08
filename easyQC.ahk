@@ -58,7 +58,7 @@ MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
 MyGui.SetFont("s14", "Courier")
 MyGui.SetFont("s14", "Courier New")
-MyGui.Title := "easyQC"
+MyGui.Title := (!dev) ? "easyQC" : "easyQC - DEV MODE"
 ;MyGui.BackColor := "f1f5f9"
 
 defaultTab := (dev) ? 1 : 1 ; // DEBUG:
@@ -69,15 +69,15 @@ Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Label", "Settings"])
 ; Main TAB ==============================================================================
 
 Tab.UseTab(1)
-MyGui.AddGroupBox("w330 h310 cGray Section", "data")
+MyGui.AddGroupBox("w330 h275 cGray Section", "data")
 
-MyGui.AddText("xp+20 yp+45 Section", "Initials: ")
+MyGui.AddText("xp+20 yp+30 Section", "Initials: ")
 data.initials.gui := MyGui.AddEdit("ys w40 limit2", data.initials.value)
-data.initials.gui.Opt("Backgroundeff6ff")
+data.initials.gui.Opt("Backgroundeef2ff")
 
 MyGui.AddText("xs Section", "Customer: ")
 data.customer.gui := MyGui.AddEdit("ys w170", data.customer.value)
-data.customer.gui.Opt("Backgroundeff6ff")
+data.customer.gui.Opt("Backgroundeef2ff")
 
 ; ==== Order ====
 MyGui.AddText("xs Section", "   Order: ")
@@ -85,41 +85,36 @@ data.preOrder.gui := MyGui.AddEdit("ys w82 number limit5", SubStr(data.order.val
 data.preOrder.gui.Enabled := false
 data.postOrder.gui := MyGui.AddEdit("ys w70 number limit4", SubStr(data.order.value, -4))
 data.order.gui := MyGui.AddEdit("ys x+-170 w170 number limit9", data.order.value)
-data.preOrder.gui.Opt("Backgroundeff6ff")
-data.postOrder.gui.Opt("Backgroundeff6ff")
-data.order.gui.Opt("Backgroundeff6ff")
+data.preOrder.gui.Opt("Backgroundeef2ff")
+data.postOrder.gui.Opt("Backgroundeef2ff")
+data.order.gui.Opt("Backgroundeef2ff")
 
 setupQuickOrder(quickOrder.value)
 
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
-data.upc.gui.Opt("Backgroundeff6ff")
+data.upc.gui.Opt("Backgroundeef2ff")
 
 data.style.text := MyGui.AddText("xs Section", "   Style: ")
-data.style.gui := MyGui.AddEdit("ys w60 limit4", data.style.value)
-data.style.gui.Opt("Backgroundeff6ff")
+data.style.gui := MyGui.AddEdit("ys w70 limit4", data.style.value)
+data.style.gui.Opt("Backgroundeef2ff")
 
 if (autoStyle.value)
     lockStyle
 
 MyGui.AddText("xs Section", "    Roll: ")
-data.roll.gui := MyGui.addEdit("ys w60")
-data.roll.gui.setFont("")
-data.roll.gui.Opt("+Backgroundeff6ff")
+data.roll.gui := MyGui.addEdit("ys w70")
+data.roll.gui.setFont("bold cf1f5f9 s14", "Arial")
+data.roll.gui.Opt("+Background4d6d9a center")
 MyGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
 defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
 
-MyGui.AddGroupBox("xs-20 y+40 W330 h85 cGray Section", "actions")
-startButton := MyGui.AddButton("xp+20 yp+30 Section", "open")
+MyGui.AddGroupBox("xs-20 y+10 W330 h75 cGray Section", "actions")
+startButton := MyGui.AddButton("xp+20 yp+25 Section", "open")
 ;startButton := MyGui.AddButton("ys Section", "Input")
 
-; DEV MODE TEXT
-if (dev) {
-    dev_text := MyGui.AddText("xs y+40", "Dev Mode Active")
-    dev_text.SetFont("bold cRed")
-}
 MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
 ; =======================================================================================
@@ -142,36 +137,38 @@ quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked
 
 Tab.UseTab(2)
 
-MyGui.AddGroupBox("w330 H120 cGray Section", "actions")
+MyGui.AddGroupBox("w330 H70 Section cGray", "actions")
 
-readButton := MyGui.AddButton("xp+20 yp+40 Section", "read")
+MyGui.SetFont("s12")
+readButton := MyGui.AddButton("xp+10 yp+25 Section", "read")
 writeButton := MyGui.AddButton("ys Section", "write")
 MyGui.SetFont("s8")
-MyGui.AddText("x60 y+15 cGray", "path: " . labelCsvPath)
-MyGui.SetFont("s14")
+MyGui.AddText("x50 y+2 cGray", "path: " . labelCsvPath)
+MyGui.SetFont("s12")
 
-MyGui.AddGroupBox("xs-105 y+30 w330 H330 cGray Section", "data")
+MyGui.AddGroupBox("x38 y+5 w330 h275 cGray Section", "data")
 
-MyGui.AddText("xp+20 yp+45 Section", "  Order#:")
-labelData.order.gui := MyGui.AddEdit("ys w160", labelData.order.value)
+MyGui.AddText("xp+15 yp+25 Section", "  Order#:")
+labelData.order.gui := MyGui.AddEdit("ys w145", labelData.order.value)
 
-MyGui.AddText("xs Section", "     UPC:")
-labelData.upc.gui := MyGui.AddEdit("ys w160", labelData.upc.value)
+MyGui.AddText("xs ys+35 Section", "     UPC:")
+labelData.upc.gui := MyGui.AddEdit("ys w145", labelData.upc.value)
 
-MyGui.AddText("xs Section", "   QC By:")
-labelData.initials.gui := MyGui.AddEdit("ys w80", labelData.initials.value)
+MyGui.AddText("xs ys+35 Section", "   QC By:")
+labelData.initials.gui := MyGui.AddEdit("ys w50", labelData.initials.value)
 
-MyGui.AddText("xs Section", "    Date:")
-labelData.date.gui := MyGui.AddEdit("ys w140", labelData.date.value)
+MyGui.AddText("xs ys+35 Section", "    Date:")
+labelData.date.gui := MyGui.AddEdit("ys w120", labelData.date.value)
 
-MyGui.AddText("xs Section", "    Roll:")
-labelData.roll.gui := MyGui.AddEdit("ys w80", labelData.roll.value)
+MyGui.AddText("xs ys+35 Section", "    Roll:")
+labelData.roll.gui := MyGui.AddEdit("ys w50", labelData.roll.value)
+MyGui.AddUpDown("Range1-200 Wrap", labelData.roll.value)
 
-MyGui.AddText("xs Section", "     Qty:")
-labelData.quantity.gui := MyGui.AddEdit("ys w80", labelData.quantity.value)
+MyGui.AddText("xs ys+35 Section", "     Qty:")
+labelData.quantity.gui := MyGui.AddEdit("ys w70", labelData.quantity.value)
 
-MyGui.AddText("xs Section", "Customer:")
-labelData.customer.gui := MyGui.AddEdit("ys w160", labelData.customer.value)
+MyGui.AddText("xs ys+35 Section", "Customer:")
+labelData.customer.gui := MyGui.AddEdit("ys w145", labelData.customer.value)
 
 ; =======================================================================================
 
@@ -270,7 +267,8 @@ onOpen(*) {
     WinWaitActive(pid)
     Sleep(500)
 
-    SendInput WinActive(pid)
+
+    ;SendInput pid
     ;onStart()
 }
 
