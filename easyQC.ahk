@@ -4,6 +4,7 @@
 ; Printer initials hotkeys
 ; Opening QC program
 ; Printer scanning
+; Check if the generated log sheet is already there
 
 ; =======================================================================================
 ; LOAD VARIABLES ========================================================================
@@ -112,8 +113,8 @@ defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
 
 MyGui.AddGroupBox("xs-20 y+10 W330 h75 cGray Section", "actions")
-startButton := MyGui.AddButton("xp+20 yp+25 Section", "open")
-;startButton := MyGui.AddButton("ys Section", "Input")
+openButton := MyGui.AddButton("xp+20 yp+25 Section", "open")
+startButton := MyGui.AddButton("ys Section", "start")
 
 MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
@@ -187,7 +188,8 @@ autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
-startButton.onEvent("Click", onOpen)
+openButton.onEvent("Click", onOpen)
+startButton.onEvent("Click", onStart)
 readButton.onEvent("Click", onRead)
 writeButton.onEvent("Click", onWrite)
 
@@ -251,6 +253,13 @@ unlockStyle(*) {
     data.style.gui.value := IniRead("config.ini", "main", "style", data.style.value)
 }
 
+onStart(*) {
+    onOpen()
+    ctrl := ControlGetFocus("A")
+    f_ctrl := ControlGetClassNN(ctrl)
+    printToCtrl(ctrl)
+}
+
 onOpen(*) {
     ; ahk_class: ConsoleWindowClass
     ; ahk_exe: cmd.exe
@@ -261,19 +270,10 @@ onOpen(*) {
     ; output := exec.StdOut.ReadAll()
     ; MsgBox(output)
 
-
     pid := 0
     Run(rfidPath, rfidPathDir, , &pid)
-    WinWaitActive(pid)
-    Sleep(500)
-
-
-    ;SendInput pid
-    ;onStart()
-}
-
-onStart(*) {
-    onPrint()
+    if (WinWait("ahk_pid " pid, , 3) = 0)
+        return MsgBox("WinWait timed out")
 }
 
 onRead(*) {
@@ -365,6 +365,23 @@ onPrint(*) {
     Sleep inputDelay
     SendInput "Y{enter}"
     Sleep inputDelay
+}
+
+printToCtrl(ctrl) {
+    ctrlSendSleep(data.initials.gui.value "{enter}", ctrl)
+    ctrlSendSleep(data.customer.gui.value "{enter}", ctrl)
+    ctrlSendSleep(data.order.gui.value "{enter}", ctrl)
+    ctrlSendSleep(data.upc.gui.value "{enter}", ctrl)
+    ctrlSendSleep(data.style.gui.value "{enter}", ctrl)
+    ctrlSendSleep(data.roll.gui.value "{enter}", ctrl)
+    ctrlSendSleep("Y{enter}", ctrl)
+    ctrlSendSleep("N{enter}", ctrl)
+    ctrlSendSleep("Y{enter}", ctrl)
+}
+
+ctrlSendSleep(text, ctrl) {
+    ControlSend(text, ctrl)
+    Sleep data.delay.gui.value
 }
 
 onClose(*) {
