@@ -272,8 +272,21 @@ onOpen(*) {
 
     pid := 0
     Run(rfidPath, rfidPathDir, , &pid)
-    if (WinWait("ahk_pid " pid, , 3) = 0)
+    hwnd := WinWait("ahk_pid " pid, , 3)
+    if (hwnd = 0)
         return MsgBox("WinWait timed out")
+
+    moveToArea(1, "right")
+}
+
+moveToArea(monitor_num, side) {
+    MonitorGetWorkArea monitor_num, &left1, &top1, &right1, &bot1
+    width := (right1 - left1) / 2
+    height := bot1 - top1
+    x := (side = "left") ? left1 : left1 + width
+    y := top1
+
+    WinMove(x, y, width, height, "A")
 }
 
 onRead(*) {
