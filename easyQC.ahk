@@ -51,6 +51,7 @@ For key, val in labelData.OwnProps()
 
 autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
 quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
+rfidPosition := { value: IniRead("config.ini", "main", "rfidPosition", 1) }
 
 ; =======================================================================================
 ; CREATE GUI ============================================================================
@@ -133,6 +134,11 @@ MyGui.AddText("ys", "ms")
 autoStyle.gui := MyGui.AddCheckBox("xs Section" . (autoStyle.value ? " checked" : ""), "Auto Style")
 quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked" : ""), "Quick Order")
 
+MyGui.AddText("xp ys+50 Section", "RFID program position: ")
+
+rfidChoose := "Choose" . rfidPosition.value
+rfidPosition.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["none", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
+
 ; =======================================================================================
 ; Label TAB =============================================================================
 
@@ -186,6 +192,7 @@ For key, val in labelData.OwnProps()
 
 autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
+rfidPosition.gui.onEvent("Change", onRfidPositionUpdated)
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 openButton.onEvent("Click", onOpen)
@@ -242,6 +249,10 @@ setupQuickOrder(val) {
     data.order.gui.visible := !val
 }
 
+onRfidPositionUpdated(*) {
+    IniWrite(rfidPosition.gui.value, "config.ini", "main", "rfidPosition")
+}
+
 lockStyle(*) {
     data.style.gui.Enabled := false
     data.style.gui.value := SubStr(data.upc.gui.value, -4)
@@ -276,7 +287,14 @@ onOpen(*) {
     if (hwnd = 0)
         return MsgBox("WinWait timed out")
 
-    moveToArea(1, "right")
+    if (rfidPosition.gui.value = 2)
+        moveToArea(1, "left")
+    else if (rfidPosition.gui.value = 3)
+        moveToArea(1, "right")
+    else if (rfidPosition.gui.value = 4)
+        moveToArea(2, "left")
+    else if (rfidPosition.gui.value = 5)
+        moveToArea(2, "right")
 }
 
 moveToArea(monitor_num, side) {
