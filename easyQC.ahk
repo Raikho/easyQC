@@ -9,8 +9,9 @@
 ; =======================================================================================
 ; LOAD VARIABLES ========================================================================
 ; =======================================================================================
+
 ; set development or production mode
-dev := IniRead("config.ini", "main", "dev", 0)
+dev := IniRead("config.ini", "debug", "dev", 0)
 
 data := {
     initials: { value: ".." },
@@ -21,17 +22,7 @@ data := {
     upc: { value: "............" },
     style: { value: "...." },
     roll: { value: 1 },
-    delay: { value: 100 },
 }
-rfidPath := (dev)
-    ? IniRead("config.ini", "main", "debugPath", "cmd.exe")
-    : IniRead("config.ini", "main", "path", "C:\RFID\PROG\RFIDQAR420.exe")
-rfidPathDir := (dev)
-    ? IniRead("config.ini", "main", "debugPathDir", ".\")
-    : IniRead("config.ini", "main", "pathDir", "C:\RFID\PROG\")
-
-For key, val in data.OwnProps()
-    data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 labelData := {
     order: { value: "20010....", title: "Order#", index: 1 },
@@ -42,16 +33,38 @@ labelData := {
     quantity: { value: "....", title: "Qty", index: 6 },
     customer: { value: "<customer>", title: "Customer", index: 7 },
 }
-labelCsvPath := (dev)
-    ? IniRead("config.ini", "label", "debugPath", "test/RFID-PACKLABEL.csv")
-    : IniRead("config.ini", "label", "path", "C:\RFID\PACKLABEL\RFID-PACKLABEL.csv")
+
+settings := {
+    autoStyle: { value: 0 },
+    quickOrder: { value: 0 },
+    delay: { value: 100 },
+    rfidPosition: { value: 1 },
+}
+
+For key, val in settings.OwnProps()
+    settings.%key%.value := IniRead("config.ini", "settings", key, val.value)
+
+For key, val in data.OwnProps()
+    data.%key%.value := IniRead("config.ini", "main", key, val.value)
 
 For key, val in labelData.OwnProps()
     labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
 
-autoStyle := { value: IniRead("config.ini", "main", "autoStyle", 0) }
-quickOrder := { value: IniRead("config.ini", "main", "quickOrder", 0) }
-rfidPosition := { value: IniRead("config.ini", "main", "rfidPosition", 1) }
+rfidDir := (dev)
+    ? IniRead("config.ini", "debug", "rfidDir", ".\")
+    : IniRead("config.ini", "main", "rfidDir", "C:\RFID\PROG\")
+rfidFile := (dev)
+    ? IniRead("config.ini", "debug", "rfidFile", "cmd.exe")
+    : IniRead("config.ini", "main", "rfidFile", "RFIDQAR420.exe")
+csvDir := (dev)
+    ? IniRead("config.ini", "debug", "csvDir", ".\")
+    : IniRead("config.ini", "main", "csvDir", "C:\RFID\PROG\")
+csvFile := (dev)
+    ? IniRead("config.ini", "debug", "csvFile", "cmd.exe")
+    : IniRead("config.ini", "main", "csvFile", "RFIDQAR420.exe")
+labelCsvPath := (dev)
+    ? IniRead("config.ini", "label", "debugPath", "test/RFID-PACKLABEL.csv")
+    : IniRead("config.ini", "label", "path", "C:\RFID\PACKLABEL\RFID-PACKLABEL.csv")
 
 ; =======================================================================================
 ; CREATE GUI ============================================================================
@@ -91,7 +104,7 @@ data.preOrder.gui.Opt("Backgroundeef2ff")
 data.postOrder.gui.Opt("Backgroundeef2ff")
 data.order.gui.Opt("Backgroundeef2ff")
 
-setupQuickOrder(quickOrder.value)
+setupQuickOrder(settings.quickOrder.value)
 
 MyGui.AddText("xs Section", "     UPC: ")
 data.upc.gui := MyGui.AddEdit("ys w170 number", data.upc.value)
@@ -101,8 +114,8 @@ data.style.text := MyGui.AddText("xs Section", "   Style: ")
 data.style.gui := MyGui.AddEdit("ys w70 limit4", data.style.value)
 data.style.gui.Opt("Backgroundeef2ff")
 
-if (autoStyle.value)
-    lockStyle
+if (settings.autoStyle.value)
+    lockStyle()
 
 MyGui.AddText("xs Section", "    Roll: ")
 data.roll.gui := MyGui.addEdit("ys w70")
@@ -117,7 +130,7 @@ MyGui.AddGroupBox("xs-20 y+10 W330 h75 cGray Section", "actions")
 openButton := MyGui.AddButton("xp+20 yp+25 Section", "open")
 startButton := MyGui.AddButton("ys Section", "start")
 
-MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
+statusBar := MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
 ; =======================================================================================
 ; SETTINGS TAB ==========================================================================
@@ -127,17 +140,17 @@ Tab.UseTab(3)
 MyGui.AddGroupBox("w330 H310 cGray Section", "general")
 
 MyGui.AddText("xp+20 yp+45 Section", "Delay")
-data.delay.gui := MyGui.AddEdit("ys w80")
-MyGui.AddUpDown("range1-9999 Wrap", data.delay.value)
+settings.delay.gui := MyGui.AddEdit("ys w80")
+MyGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
 MyGui.AddText("ys", "ms")
-autoStyle.gui := MyGui.AddCheckBox("xs Section" . (autoStyle.value ? " checked" : ""), "Auto Style")
-quickOrder.gui := MyGui.AddCheckBox("xs Section" . (quickOrder.value ? " checked" : ""), "Quick Order")
+settings.autoStyle.gui := MyGui.AddCheckBox("xs Section" . (settings.autoStyle.value ? " checked" : ""), "Auto Style")
+settings.quickOrder.gui := MyGui.AddCheckBox("xs Section" . (settings.quickOrder.value ? " checked" : ""), "Quick Order")
 
 MyGui.AddText("xp ys+50 Section", "RFID program position: ")
 
-rfidChoose := "Choose" . rfidPosition.value
-rfidPosition.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["none", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
+rfidChoose := "Choose" . settings.rfidPosition.value
+settings.rfidPosition.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["none", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
 
 ; =======================================================================================
 ; Label TAB =============================================================================
@@ -190,9 +203,10 @@ For key, val in data.OwnProps()
 For key, val in labelData.OwnProps()
     labelData.%key%.gui.onEvent("Change", onLabelDataUpdated.Bind(key, val))
 
-autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
-quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
-rfidPosition.gui.onEvent("Change", onRfidPositionUpdated)
+settings.autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
+settings.quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
+settings.rfidPosition.gui.onEvent("Change", onRfidPositionUpdated)
+; // TODO: add DELAY event
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 openButton.onEvent("Click", onOpen)
@@ -206,7 +220,7 @@ MyGui.OnEvent("Close", onClose)
 ; FUNCTIONS =============================================================================
 ; =======================================================================================
 onDataUpdated(key, val, *) {
-    if (autoStyle.gui.value && key = "upc")
+    if (settings.autoStyle.gui.value && key = "upc")
         data.style.gui.value := SubStr(data.upc.gui.value, -4)
     if (key = "preOrder")
         return MsgBox("Error: preOrder was somehow updated using the gui)")
@@ -229,7 +243,7 @@ onLabelDataUpdated(key, val, *) {
 }
 
 onAutoStyleUpdated(*) {
-    val := autoStyle.gui.value
+    val := settings.autoStyle.gui.value
     IniWrite(val, "config.ini", "main", "autoStyle")
     if (val)
         lockStyle
@@ -238,9 +252,9 @@ onAutoStyleUpdated(*) {
 }
 
 onQuickOrderUpdated(*) {
-    IniWrite(quickOrder.gui.value, "config.ini", "main", "quickOrder")
-    quickOrder.value := quickOrder.gui.value
-    setupQuickOrder(quickOrder.gui.value)
+    IniWrite(settings.quickOrder.gui.value, "config.ini", "main", "quickOrder")
+    settings.quickOrder.value := settings.quickOrder.gui.value
+    setupQuickOrder(settings.quickOrder.gui.value)
 }
 
 setupQuickOrder(val) {
@@ -250,7 +264,7 @@ setupQuickOrder(val) {
 }
 
 onRfidPositionUpdated(*) {
-    IniWrite(rfidPosition.gui.value, "config.ini", "main", "rfidPosition")
+    IniWrite(settings.rfidPosition.gui.value, "config.ini", "main", "rfidPosition")
 }
 
 lockStyle(*) {
@@ -281,20 +295,73 @@ onOpen(*) {
     ; output := exec.StdOut.ReadAll()
     ; MsgBox(output)
 
+    currentHwnd := WinGetID("A")
+    currentPid := WinGetPID("A")
+
+    n := 0
+    n := WinGetList("ahk_exe cmd.exe").length
+    ToolTip("num of windows: " . n)
+
+
     pid := 0
-    Run(rfidPath, rfidPathDir, , &pid)
-    hwnd := WinWait("ahk_pid " pid, , 3)
+    Run(rfidDir . rfidFile, rfidDir, , &pid)
+    Sleep(500)
+
+
+    hwnd := WinWait("ahk_exe cmd.exe", , 3)
     if (hwnd = 0)
         return MsgBox("WinWait timed out")
+    /*
+        if (rfidPosition.gui.value = 2)
+            moveToArea(1, "left")
+        else if (rfidPosition.gui.value = 3)
+            moveToArea(1, "right")
+        else if (rfidPosition.gui.value = 4)
+            moveToArea(2, "left")
+        else if (rfidPosition.gui.value = 5)
+            moveToArea(2, "right")
+    */
 
-    if (rfidPosition.gui.value = 2)
-        moveToArea(1, "left")
-    else if (rfidPosition.gui.value = 3)
-        moveToArea(1, "right")
-    else if (rfidPosition.gui.value = 4)
-        moveToArea(2, "left")
-    else if (rfidPosition.gui.value = 5)
-        moveToArea(2, "right")
+    ;n := WinGetList("ahk_exe cmd.exe").length
+    ;ToolTip("num of windows: " . n)
+
+    ; SNIPPET
+    /*     WinTitle := 'ahk_exe Notepad.exe'
+        hWnd := runAndWaitForInstance('Notepad', winTitle)
+        MsgBox hWnd, 'HWND', 'Iconi'
+    
+        runAndWaitForInstance(commandLine, winTitle) {
+            before := WinGetList(winTitle).Length
+            Run commandLine
+            Loop
+                Sleep(30), win := WinGetList(winTitle)
+            Until win.Length > before
+            Return win[1]
+        }
+    */
+
+    ;ToolTip("currPID " . currentPid . "`tcurrHwnd: " . currentHwnd . "`npid: " . pid . "`t`thwnd: " . hwnd)
+
+    ;if (WinActive("ahk_pid " pid)) {
+    ;sleep(1)
+    ;statusBar.SetText("IS ACTIVATE")
+    ;}
+    ;else {
+    ;sleep(1)
+    ;WinActivate("ahk_pid " pid)
+    ;statusBar.SetText("NOT ACTIVE")
+    ;}
+
+    ;WinActivate("ahk_pid " pid)
+
+    ;list := WinGetControls("ahk_pid " pid)
+    ;statusBar.SetText("control list: " . list.Length)
+
+    ;list := WinGetControls("ahk_id " hwnd)
+    ;out := "test: "
+    ;for index, val in list
+    ;out .= ", " . val
+    ;ToolTip(list[0])
 }
 
 moveToArea(monitor_num, side) {
