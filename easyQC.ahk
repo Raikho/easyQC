@@ -442,7 +442,7 @@ onWrite(*) {
 }
 
 onPrint(*) {
-    inputDelay := data.delay.gui.value
+    inputDelay := settings.delay.gui.value
 
     SendInput data.initials.gui.value "{enter}"
     Sleep inputDelay
