@@ -1,10 +1,12 @@
 ﻿; TODO:
 ; Samples Mode
-; Ability for empty UPCs
 ; Printer initials hotkeys
+; Options to disable hotkeys
+; Ability for empty UPCs
 ; Opening QC program
 ; Printer scanning
 ; Check if the generated log sheet is already there
+; adjust rfid win positions
 
 ; =======================================================================================
 ; LOAD VARIABLES ========================================================================
@@ -24,6 +26,9 @@ data := {
     roll: { value: 1 },
 }
 
+For key, val in data.OwnProps()
+    data.%key%.value := IniRead("config.ini", "main", key, val.value)
+
 labelData := {
     order: { value: "20010....", title: "Order#", index: 1 },
     upc: { value: "............", title: "Upc", index: 2 },
@@ -34,24 +39,35 @@ labelData := {
     customer: { value: "<customer>", title: "Customer", index: 7 },
 }
 
+For key, val in labelData.OwnProps()
+    labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
+
 settings := {
     autoStyle: { value: 0 },
     quickOrder: { value: 0 },
     delay: { value: 100 },
-    rfidPosition: { value: 1 },
+    rfidWinPos: { value: 1 },
 }
 
 For key, val in settings.OwnProps()
     settings.%key%.value := IniRead("config.ini", "settings", key, val.value)
 
-For key, val in data.OwnProps()
-    data.%key%.value := IniRead("config.ini", "main", key, val.value)
+paths := {
+    rfid: {
+        dir: IniRead("config.ini", "debug", "rfidDir", ""),
+        file: IniRead("config.ini", "debug", "rfidFile", "cmd.exe"),
+        path: "cmd.exe",
+    },
+    csv: {
+        dir: IniRead("config.ini", "debug", "csvDir", "test\"),
+        file: IniRead("config.ini", "debug", "csvFile", "RFID-PACKLABEL.csv"),
+        path: "test\RFID-PACKLABEL.csv",
+    },
+}
 
-For key, val in labelData.OwnProps()
-    labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
-
+/*
 rfidDir := (dev)
-    ? IniRead("config.ini", "debug", "rfidDir", ".\")
+    ? IniRead("config.ini", "debug", "rfidDir", "")
     : IniRead("config.ini", "main", "rfidDir", "C:\RFID\PROG\")
 rfidFile := (dev)
     ? IniRead("config.ini", "debug", "rfidFile", "cmd.exe")
@@ -63,9 +79,9 @@ csvFile := (dev)
     ? IniRead("config.ini", "debug", "csvFile", "cmd.exe")
     : IniRead("config.ini", "main", "csvFile", "RFIDQAR420.exe")
 labelCsvPath := (dev)
-    ? IniRead("config.ini", "label", "debugPath", "test/RFID-PACKLABEL.csv")
+    ? IniRead("config.ini", "label", "debug", "test/RFID-PACKLABEL.csv")
     : IniRead("config.ini", "label", "path", "C:\RFID\PACKLABEL\RFID-PACKLABEL.csv")
-
+*/
 ; =======================================================================================
 ; CREATE GUI ============================================================================
 ; =======================================================================================
@@ -149,8 +165,8 @@ settings.quickOrder.gui := MyGui.AddCheckBox("xs Section" . (settings.quickOrder
 
 MyGui.AddText("xp ys+50 Section", "RFID program position: ")
 
-rfidChoose := "Choose" . settings.rfidPosition.value
-settings.rfidPosition.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["none", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
+rfidChoose := "Choose" . settings.rfidWinPos.value
+settings.rfidWinPos.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["none", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
 
 ; =======================================================================================
 ; Label TAB =============================================================================
@@ -163,7 +179,7 @@ MyGui.SetFont("s12")
 readButton := MyGui.AddButton("xp+10 yp+25 Section", "read")
 writeButton := MyGui.AddButton("ys Section", "write")
 MyGui.SetFont("s8")
-MyGui.AddText("x50 y+2 cGray", "path: " . labelCsvPath)
+MyGui.AddText("x50 y+2 cGray", "path: " . paths.csv.path)
 MyGui.SetFont("s12")
 
 MyGui.AddGroupBox("x38 y+5 w330 h275 cGray Section", "data")
@@ -205,7 +221,8 @@ For key, val in labelData.OwnProps()
 
 settings.autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 settings.quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
-settings.rfidPosition.gui.onEvent("Change", onRfidPositionUpdated)
+settings.delay.gui.onEvent("Change", onDelayUpdated)
+settings.rfidWinPos.gui.onEvent("Change", onRfidWinPosUpdated)
 ; // TODO: add DELAY event
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
@@ -244,7 +261,7 @@ onLabelDataUpdated(key, val, *) {
 
 onAutoStyleUpdated(*) {
     val := settings.autoStyle.gui.value
-    IniWrite(val, "config.ini", "main", "autoStyle")
+    IniWrite(val, "config.ini", "settings", "autoStyle")
     if (val)
         lockStyle
     else
@@ -252,9 +269,14 @@ onAutoStyleUpdated(*) {
 }
 
 onQuickOrderUpdated(*) {
-    IniWrite(settings.quickOrder.gui.value, "config.ini", "main", "quickOrder")
+    IniWrite(settings.quickOrder.gui.value, "config.ini", "settings", "quickOrder")
     settings.quickOrder.value := settings.quickOrder.gui.value
     setupQuickOrder(settings.quickOrder.gui.value)
+}
+
+onDelayUpdated(*) {
+    IniWrite(settings.delay.gui.value, "config.ini", "settings", "delay")
+    settings.delay.value := settings.delay.gui.value
 }
 
 setupQuickOrder(val) {
@@ -263,8 +285,8 @@ setupQuickOrder(val) {
     data.order.gui.visible := !val
 }
 
-onRfidPositionUpdated(*) {
-    IniWrite(settings.rfidPosition.gui.value, "config.ini", "main", "rfidPosition")
+onRfidWinPosUpdated(*) {
+    IniWrite(settings.rfidWinPos.gui.value, "config.ini", "settings", "rfidWinPos")
 }
 
 lockStyle(*) {
@@ -304,23 +326,22 @@ onOpen(*) {
 
 
     pid := 0
-    Run(rfidDir . rfidFile, rfidDir, , &pid)
+    Run(paths.rfid.path, paths.rfid.dir, , &pid)
     Sleep(500)
 
 
     hwnd := WinWait("ahk_exe cmd.exe", , 3)
     if (hwnd = 0)
         return MsgBox("WinWait timed out")
-    /*
-        if (rfidPosition.gui.value = 2)
-            moveToArea(1, "left")
-        else if (rfidPosition.gui.value = 3)
-            moveToArea(1, "right")
-        else if (rfidPosition.gui.value = 4)
-            moveToArea(2, "left")
-        else if (rfidPosition.gui.value = 5)
-            moveToArea(2, "right")
-    */
+
+    if (settings.rfidWinPos.gui.value = 2)
+        moveToArea(1, "left")
+    else if (settings.rfidWinPos.gui.value = 3)
+        moveToArea(1, "right")
+    else if (settings.rfidWinPos.gui.value = 4)
+        moveToArea(2, "left")
+    else if (settings.rfidWinPos.gui.value = 5)
+        moveToArea(2, "right")
 
     ;n := WinGetList("ahk_exe cmd.exe").length
     ;ToolTip("num of windows: " . n)
@@ -378,7 +399,7 @@ onRead(*) {
     csv := {}
 
     try {
-        Loop read, labelCsvPath {
+        Loop read, paths.csv.path {
             line := A_Index
 
             Loop parse, A_LoopReadLine, "CSV" {
@@ -394,7 +415,7 @@ onRead(*) {
         }
     }
     catch Error as e {
-        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . labelCsvPath . "`nAlso check that the csv file is in the correct format.")
+        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . paths.csv.path . "`nAlso check that the csv file is in the correct format.")
         return
     }
 
@@ -425,7 +446,7 @@ updateCsv(csv) {
 }
 
 onWrite(*) {
-    file := FileOpen(labelCsvPath, "w") ; TODO: add path option
+    file := FileOpen(paths.csv.path, "w") ; TODO: add path option
     out := ""
 
     out .= "`"Order#`",`"UPC`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
