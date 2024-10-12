@@ -54,34 +54,18 @@ For key, val in settings.OwnProps()
 
 paths := {
     rfid: {
-        dir: IniRead("config.ini", "debug", "rfidDir", ""),
-        file: IniRead("config.ini", "debug", "rfidFile", "cmd.exe"),
-        path: "cmd.exe",
+        dir: IniRead("config.ini", dev ? "debug" : "paths", "rfidDir", dev ? "" : "C:\RFID\PROG\"),
+        file: IniRead("config.ini", dev ? "debug" : "paths", "rfidFile", dev ? "cmd.exe" : "RFIDQAR420.exe"),
     },
     csv: {
-        dir: IniRead("config.ini", "debug", "csvDir", "test\"),
-        file: IniRead("config.ini", "debug", "csvFile", "RFID-PACKLABEL.csv"),
-        path: "test\RFID-PACKLABEL.csv",
+        dir: IniRead("config.ini", dev ? "debug" : "paths", "csvDir", dev ? "test\" : "C:\RFID\PACKLABEL\"),
+        file: IniRead("config.ini", dev ? "debug" : "paths", "csvFile", "RFID-PACKLABEL.csv"),
     },
 }
+paths.rfid.DefineProp("full", { Get: (this) => this.dir . this.file })
+paths.csv.DefineProp("full", { Get: (this) => this.dir . this.file })
 
-/*
-rfidDir := (dev)
-    ? IniRead("config.ini", "debug", "rfidDir", "")
-    : IniRead("config.ini", "main", "rfidDir", "C:\RFID\PROG\")
-rfidFile := (dev)
-    ? IniRead("config.ini", "debug", "rfidFile", "cmd.exe")
-    : IniRead("config.ini", "main", "rfidFile", "RFIDQAR420.exe")
-csvDir := (dev)
-    ? IniRead("config.ini", "debug", "csvDir", ".\")
-    : IniRead("config.ini", "main", "csvDir", "C:\RFID\PROG\")
-csvFile := (dev)
-    ? IniRead("config.ini", "debug", "csvFile", "cmd.exe")
-    : IniRead("config.ini", "main", "csvFile", "RFIDQAR420.exe")
-labelCsvPath := (dev)
-    ? IniRead("config.ini", "label", "debug", "test/RFID-PACKLABEL.csv")
-    : IniRead("config.ini", "label", "path", "C:\RFID\PACKLABEL\RFID-PACKLABEL.csv")
-*/
+
 ; =======================================================================================
 ; CREATE GUI ============================================================================
 ; =======================================================================================
@@ -93,7 +77,10 @@ MyGui.Title := (!dev) ? "easyQC" : "easyQC - DEV MODE"
 ;MyGui.BackColor := "f1f5f9"
 
 defaultTab := (dev) ? 1 : 1 ; // DEBUG:
-Tab := MyGui.AddTab3("choose" . defaultTab, ["Main", "Label", "Settings"])
+
+MyGui.SetFont("s11")
+Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main", "Label", "Samples", "Print", "Settings"])
+MyGui.SetFont("s14")
 ;Tab.Opt("BackgroundWhite")
 
 ; =======================================================================================
@@ -149,26 +136,6 @@ startButton := MyGui.AddButton("ys Section", "start")
 statusBar := MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
 ; =======================================================================================
-; SETTINGS TAB ==========================================================================
-
-Tab.UseTab(3)
-
-MyGui.AddGroupBox("w330 H310 cGray Section", "general")
-
-MyGui.AddText("xp+20 yp+45 Section", "Delay")
-settings.delay.gui := MyGui.AddEdit("ys w80")
-MyGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
-
-MyGui.AddText("ys", "ms")
-settings.autoStyle.gui := MyGui.AddCheckBox("xs Section" . (settings.autoStyle.value ? " checked" : ""), "Auto Style")
-settings.quickOrder.gui := MyGui.AddCheckBox("xs Section" . (settings.quickOrder.value ? " checked" : ""), "Quick Order")
-
-MyGui.AddText("xp ys+50 Section", "RFID program position: ")
-
-rfidChoose := "Choose" . settings.rfidWinPos.value
-settings.rfidWinPos.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["none", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
-
-; =======================================================================================
 ; Label TAB =============================================================================
 
 Tab.UseTab(2)
@@ -179,7 +146,7 @@ MyGui.SetFont("s12")
 readButton := MyGui.AddButton("xp+10 yp+25 Section", "read")
 writeButton := MyGui.AddButton("ys Section", "write")
 MyGui.SetFont("s8")
-MyGui.AddText("x50 y+2 cGray", "path: " . paths.csv.path)
+MyGui.AddText("x50 y+2 cGray", "path: " . paths.csv.full)
 MyGui.SetFont("s12")
 
 MyGui.AddGroupBox("x38 y+5 w330 h275 cGray Section", "data")
@@ -207,6 +174,29 @@ MyGui.AddText("xs ys+35 Section", "Customer:")
 labelData.customer.gui := MyGui.AddEdit("ys w145", labelData.customer.value)
 
 ; =======================================================================================
+; SETTINGS TAB ==========================================================================
+
+Tab.UseTab(5)
+
+MyGui.AddGroupBox("w330 H310 cGray Section", "general")
+
+MyGui.AddText("xp+20 yp+45 Section", "Delay")
+settings.delay.gui := MyGui.AddEdit("ys w80")
+MyGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
+
+MyGui.AddText("ys", "ms")
+settings.autoStyle.gui := MyGui.AddCheckBox("xs Section" . (settings.autoStyle.value ? " checked" : ""), "Auto Style")
+settings.quickOrder.gui := MyGui.AddCheckBox("xs Section" . (settings.quickOrder.value ? " checked" : ""), "Quick Order")
+
+MyGui.AddText("xs Section", "RFID Program:")
+paths.rfid.gui := MyGui.addEdit("xs w280", paths.rfid.file)
+;ToolTip("defualt paths.rfid.gui value: ", paths.rfid.gui.value)
+
+MyGui.AddText("xs Section", "RFID program position:")
+rfidChoose := "Choose" . settings.rfidWinPos.value
+settings.rfidWinPos.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose, ["default", "left half of monitor 1", "right half of monitor 1", "left half of monitor 2", "right half of monitor 2"])
+
+; =======================================================================================
 
 MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 
@@ -222,6 +212,7 @@ For key, val in labelData.OwnProps()
 settings.autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 settings.quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 settings.delay.gui.onEvent("Change", onDelayUpdated)
+paths.rfid.gui.onEvent("Change", onRfidProgramUpdated)
 settings.rfidWinPos.gui.onEvent("Change", onRfidWinPosUpdated)
 ; // TODO: add DELAY event
 
@@ -279,6 +270,11 @@ onDelayUpdated(*) {
     settings.delay.value := settings.delay.gui.value
 }
 
+onRfidProgramUpdated(*) {
+    IniWrite(paths.rfid.gui.value, "config.ini", dev ? "debug" : "paths", "rfidFile")
+    paths.rfid.file := paths.rfid.gui.value
+}
+
 setupQuickOrder(val) {
     data.preOrder.gui.Visible := val
     data.postOrder.gui.Visible := val
@@ -326,7 +322,7 @@ onOpen(*) {
 
 
     pid := 0
-    Run(paths.rfid.path, paths.rfid.dir, , &pid)
+    Run(paths.rfid.full, paths.rfid.dir, , &pid)
     Sleep(500)
 
 
@@ -399,7 +395,7 @@ onRead(*) {
     csv := {}
 
     try {
-        Loop read, paths.csv.path {
+        Loop read, paths.csv.full {
             line := A_Index
 
             Loop parse, A_LoopReadLine, "CSV" {
@@ -415,7 +411,7 @@ onRead(*) {
         }
     }
     catch Error as e {
-        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . paths.csv.path . "`nAlso check that the csv file is in the correct format.")
+        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . paths.csv.full . "`nAlso check that the csv file is in the correct format.")
         return
     }
 
