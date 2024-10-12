@@ -46,8 +46,8 @@ For key, val in labelData.OwnProps()
 sampleData := {
     initials: { value: ".." },
     customer: { value: "<customer>" },
-    order: { value: "........." },
-    style: { value: "...." },
+    order: { value: "<order>" },
+    style: { value: "<style>" },
     roll: { value: 1 },
 }
 
@@ -523,6 +523,29 @@ onPrint(*) {
     Sleep inputDelay
 }
 
+onSamplePrint(*) {
+    inputDelay := settings.delay.gui.value
+
+    SendInput sampleData.initials.gui.value "{enter}"
+    Sleep inputDelay
+    SendInput sampleData.customer.gui.value "{enter}"
+    Sleep inputDelay
+    SendInput sampleData.order.gui.value "{enter}"
+    Sleep inputDelay
+    SendInput "{enter}"
+    Sleep inputDelay
+    SendInput sampleData.style.gui.value "{enter}"
+    Sleep inputDelay
+    SendInput sampleData.roll.gui.value "{enter}"
+    Sleep inputDelay
+    SendInput "Y{enter}"
+    Sleep inputDelay
+    SendInput "N{enter}"
+    Sleep inputDelay
+    SendInput "Y{enter}"
+    Sleep inputDelay
+}
+
 printToCtrl(ctrl) {
     ctrlSendSleep(data.initials.gui.value "{enter}", ctrl)
     ctrlSendSleep(data.customer.gui.value "{enter}", ctrl)
@@ -546,6 +569,8 @@ onClose(*) {
 }
 
 ^1:: onPrint()
+
+^2:: onSamplePrint()
 
 addDebugNotification(*) {
     TrayTip(
