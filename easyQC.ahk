@@ -55,7 +55,6 @@ For key, val in sampleData.OwnProps()
 
 printData := { initials: { value: ".." }, }
 printData.initials.value := IniRead("config.ini", "print", "initials", printData.initials.value)
-TrayTip("print data is set to: ", printData.initials.value)
 
 settings := {
     autoStyle: { value: 0 },
@@ -588,8 +587,8 @@ onClose(*) {
         ExitApp
 }
 
+#HotIf WinActive("ahk_exe cmd.exe") or WinActive("ahk_exe WindowsTerminal.exe") or WinActive("ahk_class Notepad") or WinActive("ahk_exe WINWORD.EXE")
 ^1:: onPrint()
-
 ^2:: onSamplePrint()
 
 #HotIf WinActive("ahk_class XLMAIN")
