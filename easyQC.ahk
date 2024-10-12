@@ -88,7 +88,7 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := (!dev) ? "easyQC" : "easyQC - DEV MODE"
 ;MyGui.BackColor := "f1f5f9"
 
-defaultTab := (dev) ? 1 : 1 ; DEBUG
+defaultTab := (dev) ? 4 : 1 ; DEBUG
 
 MyGui.SetFont("s11")
 Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main", "Label", "Samples", "Print", "Settings"])
@@ -219,6 +219,18 @@ MyGui.AddText("xp+20 yp+30 Section", "Initials:")
 printdata.initials.gui := MyGui.AddEdit("ys w40 limit2", printData.initials.value)
 
 MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press Alt + Numpad[0-9] to output [ZZ P-04] through [ZZ P-11], (Numpad1 is for P-11, Numpad0 is for P-10) ")
+
+searchPrintersButton := MyGui.AddButton("xp y+30 Section", "Search Printers")
+searchPrintersButton.OnEvent("click", onSearchPrinters)
+onSearchPrinters(*) {
+    printers := ""
+
+    Loop Reg, "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Devices"
+        printers .= A_loopRegName . "`n"
+
+    TrayTip("printers:`n" . printers)
+}
+
 
 ; =======================================================================================
 ; ==================================== SETTINGS TAB =====================================
