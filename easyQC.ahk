@@ -1,5 +1,4 @@
 ﻿; TODO:
-; Samples Mode
 ; Printer initials hotkeys
 ; Options to disable hotkeys
 ; Ability for empty UPCs
@@ -54,6 +53,10 @@ sampleData := {
 For key, val in sampleData.OwnProps()
     sampleData.%key%.value := IniRead("config.ini", "sample", key, val.value)
 
+printData := { initials: { value: ".." }, }
+printData.initials.value := IniRead("config.ini", "print", "initials", printData.initials.value)
+TrayTip("print data is set to: ", printData.initials.value)
+
 settings := {
     autoStyle: { value: 0 },
     quickOrder: { value: 0 },
@@ -88,7 +91,7 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := (!dev) ? "easyQC" : "easyQC - DEV MODE"
 ;MyGui.BackColor := "f1f5f9"
 
-defaultTab := (dev) ? 3 : 1 ; DEBUG
+defaultTab := (dev) ? 4 : 1 ; DEBUG
 
 MyGui.SetFont("s11")
 Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main", "Label", "Samples", "Print", "Settings"])
@@ -210,6 +213,17 @@ MyGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
 MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press ctrl-2 to output sample values inputted here")
 
 ; =======================================================================================
+; ==================================== Print TAB ======================================
+
+Tab.UseTab(4)
+MyGui.AddGroupBox("x38 y+5 w330 h150 cGray Section", "shortcuts")
+
+MyGui.AddText("xp+20 yp+30 Section", "Initials:")
+printdata.initials.gui := MyGui.AddEdit("ys w40 limit2", printdata.initials.value)
+
+MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press Alt + Numpad[1-9] to output [" . sampleData.initials.gui.value . " P-04] through [" sampleData.initials.gui.value . " P-11], (Alt+Numpad1 is for P-11) ")
+
+; =======================================================================================
 ; ==================================== SETTINGS TAB =====================================
 
 Tab.UseTab(5)
@@ -247,6 +261,8 @@ For key, val in labelData.OwnProps()
 
 For key, val in sampleData.OwnProps()
     sampleData.%key%.gui.onEvent("Change", onSampleDataUpdated.bind(key, val))
+
+printData.initials.gui.onEvent("Change", onPrintDataUpdated)
 
 settings.autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 settings.quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
@@ -290,6 +306,10 @@ onLabelDataUpdated(key, val, *) {
 
 onSampleDataUpdated(key, val, *) {
     IniWrite(sampleData.%key%.gui.value, "config.ini", "sample", key)
+}
+
+onPrintDataUpdated(*) {
+    IniWrite(printData.initials.gui.value, "config.ini", "print", "initials")
 }
 
 onAutoStyleUpdated(*) {
