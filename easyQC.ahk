@@ -216,12 +216,12 @@ MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press ctrl-2 to output sample
 ; ==================================== Print TAB ======================================
 
 Tab.UseTab(4)
-MyGui.AddGroupBox("x38 y+5 w330 h150 cGray Section", "shortcuts")
+MyGui.AddGroupBox("x38 y+5 w330 h165 cGray Section", "shortcuts")
 
 MyGui.AddText("xp+20 yp+30 Section", "Initials:")
-printdata.initials.gui := MyGui.AddEdit("ys w40 limit2", printdata.initials.value)
+printdata.initials.gui := MyGui.AddEdit("ys w40 limit2", printData.initials.value)
 
-MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press Alt + Numpad[1-9] to output [" . sampleData.initials.gui.value . " P-04] through [" sampleData.initials.gui.value . " P-11], (Alt+Numpad1 is for P-11) ")
+MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press Alt + Numpad[0-9] to output [ZZ P-04] through [ZZ P-11], (Numpad1 is for P-11, Numpad0 is for P-10) ")
 
 ; =======================================================================================
 ; ==================================== SETTINGS TAB =====================================
@@ -591,6 +591,18 @@ onClose(*) {
 ^1:: onPrint()
 
 ^2:: onSamplePrint()
+
+#HotIf WinActive("ahk_class XLMAIN")
+!Numpad1:: SendInput printData.initials.gui.value . " P-11+{enter}{enter}"
+!Numpad4:: SendInput printData.initials.gui.value . " P-04+{enter}{enter}"
+!Numpad5:: SendInput printData.initials.gui.value . " P-05+{enter}{enter}"
+!Numpad6:: SendInput printData.initials.gui.value . " P-06+{enter}{enter}"
+!Numpad7:: SendInput printData.initials.gui.value . " P-07+{enter}{enter}"
+!Numpad8:: SendInput printData.initials.gui.value . " P-08+{enter}{enter}"
+!Numpad9:: SendInput printData.initials.gui.value . " P-09+{enter}{enter}"
+!Numpad0:: SendInput printData.initials.gui.value . " P-10+{enter}{enter}"
+
+#HotIf true
 
 addDebugNotification(*) {
     TrayTip(
