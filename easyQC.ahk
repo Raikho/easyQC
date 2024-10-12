@@ -1,12 +1,8 @@
 ﻿; TODO:
-; Printer initials hotkeys
 ; Options to disable hotkeys
-; Ability for empty UPCs
-; Opening QC program
+; Opening & Auto Filling QC program
 ; Printer scanning
 ; Check if the generated log sheet is already there
-; adjust rfid win positions
-; change date of labels more efficiently
 
 ; =======================================================================================
 ; ==================================== LOAD VARIABLES ===================================
@@ -92,7 +88,7 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := (!dev) ? "easyQC" : "easyQC - DEV MODE"
 ;MyGui.BackColor := "f1f5f9"
 
-defaultTab := (dev) ? 4 : 1 ; DEBUG
+defaultTab := (dev) ? 1 : 1 ; DEBUG
 
 MyGui.SetFont("s11")
 Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main", "Label", "Samples", "Print", "Settings"])
@@ -279,6 +275,17 @@ writeButton.onEvent("Click", onWrite)
 
 MyGui.OnEvent("Close", onClose)
 
+~WheelUp:: {
+    MouseGetPos(, , , &dateControl)
+    if (dateControl = "edit12")
+        dateChange(1)
+}
+~WheelDown:: {
+    MouseGetPos(, , , &dateControl)
+    if (dateControl = "edit12")
+        dateChange(-1)
+}
+
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
@@ -304,7 +311,7 @@ onDataUpdated(key, val, *) {
 onLabelDataUpdated(key, val, *) {
     IniWrite(labelData.%key%.gui.value, "config.ini", "label", key)
     if (labelData.%key%.gui.value != labelData.%key%.readValue)
-        labelData.%key%.gui.Opt("Backgroundacb6d8")
+        labelData.%key%.gui.Opt("Backgrounddbe2fc")
     else
         labelData.%key%.gui.Opt("-Background")
 }
@@ -324,6 +331,29 @@ onSampleDataUpdated(key, val, *) {
 onPrintDataUpdated(*) {
     IniWrite(printData.initials.gui.value, "config.ini", "print", "initials")
 }
+
+
+dateChange(num) {
+    date := labelData.date.gui.value
+    dates := StrSplit(date, "/")
+    try {
+        month := dates[1]
+        day := dates[2]
+        year := dates[3]
+    } catch {
+        return ToolTip("had an error splitting date")
+    }
+    if (StrLen(month) != 2 || StrLen(day) != 2 || StrLen(year) != 2) {
+        return ToolTip("not proper lengths: month, day, length" . month . ", " . day . ", " . year)
+    }
+
+    newDate := DateAdd("20" . year . month . day, num, "days")
+
+    labelData.date.gui.value := FormatTime(newDate, "MM/dd/yy")
+
+    onLabelDataUpdated("date", date)
+}
+
 
 onAutoStyleUpdated(*) {
     val := settings.autoStyle.gui.value
@@ -519,20 +549,29 @@ updateCsv(csv) {
 }
 
 onWrite(*) {
-    file := FileOpen(paths.csv.path, "w") ; TODO: add path option
-    out := ""
+    try {
+        file := FileOpen(paths.csv.full, "w") ; TODO: add path option
+        out := ""
 
-    out .= "`"Order#`",`"UPC`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
-    out .= "`"" . labelData.order.gui.value . "`"" . ","
-    out .= "`"" . labelData.upc.gui.value . "`"" . ","
-    out .= "`"" . labelData.initials.gui.value . "`"" . ","
-    out .= "`"" . labelData.date.gui.value . "`"" . ","
-    out .= "`"" . labelData.roll.gui.value . "`"" . ","
-    out .= "`"" . labelData.quantity.gui.value . "`"" . ","
-    out .= "`"" . labelData.customer.gui.value . "`""
+        out .= "`"Order#`",`"UPC`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
+        out .= "`"" . labelData.order.gui.value . "`"" . ","
+        out .= "`"" . labelData.upc.gui.value . "`"" . ","
+        out .= "`"" . labelData.initials.gui.value . "`"" . ","
+        out .= "`"" . labelData.date.gui.value . "`"" . ","
+        out .= "`"" . labelData.roll.gui.value . "`"" . ","
+        out .= "`"" . labelData.quantity.gui.value . "`"" . ","
+        out .= "`"" . labelData.customer.gui.value . "`""
 
-    file.Write(out)
-    file.Close()
+        file.Write(out)
+        file.Close()
+
+        for key, val in labelData.OwnProps() ; else it isn't clearing background
+            labelData.%key%.gui.value := labelData.%key%.gui.value
+        resetLabelReadStatus()
+    } catch as e {
+        MsgBox("An error ocurred: `n", e)
+    }
+
 }
 
 onPrint(*) {
