@@ -39,8 +39,10 @@ labelData := {
     customer: { value: "<customer>", title: "Customer", index: 7 },
 }
 
-For key, val in labelData.OwnProps()
+For key, val in labelData.OwnProps() {
     labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
+    labelData.%key%.readValue := labelData.%key%.value
+}
 
 sampleData := {
     initials: { value: ".." },
@@ -301,6 +303,18 @@ onDataUpdated(key, val, *) {
 
 onLabelDataUpdated(key, val, *) {
     IniWrite(labelData.%key%.gui.value, "config.ini", "label", key)
+    if (labelData.%key%.gui.value != labelData.%key%.readValue)
+        labelData.%key%.gui.Opt("Backgroundacb6d8")
+    else
+        labelData.%key%.gui.Opt("-Background")
+}
+
+resetLabelReadStatus(*) {
+    for key, val in labelData.OwnProps() {
+        labelData.%key%.readValue := labelData.%key%.gui.value
+        labelData.%key%.gui.Opt("-Background")
+    }
+
 }
 
 onSampleDataUpdated(key, val, *) {
@@ -379,7 +393,8 @@ onOpen(*) {
 
     n := 0
     n := WinGetList("ahk_exe cmd.exe").length
-    ToolTip("num of windows: " . n)
+    if dev
+        ToolTip("num of windows: " . n)
 
 
     pid := 0
@@ -478,6 +493,7 @@ onRead(*) {
 
     updateCsv(csv)
     saveCsv(csv)
+    resetLabelReadStatus()
 }
 
 saveCsv(csv) {
