@@ -7,9 +7,10 @@
 ; Printer scanning
 ; Check if the generated log sheet is already there
 ; adjust rfid win positions
+; change date of labels more efficiently
 
 ; =======================================================================================
-; LOAD VARIABLES ========================================================================
+; ==================================== LOAD VARIABLES ===================================
 ; =======================================================================================
 
 ; set development or production mode
@@ -42,6 +43,17 @@ labelData := {
 For key, val in labelData.OwnProps()
     labelData.%key%.value := IniRead("config.ini", "label", key, val.value)
 
+sampleData := {
+    initials: { value: ".." },
+    customer: { value: "<customer>" },
+    order: { value: "........." },
+    style: { value: "...." },
+    roll: { value: 1 },
+}
+
+For key, val in sampleData.OwnProps()
+    sampleData.%key%.value := IniRead("config.ini", "sample", key, val.value)
+
 settings := {
     autoStyle: { value: 0 },
     quickOrder: { value: 0 },
@@ -58,7 +70,7 @@ paths := {
         file: IniRead("config.ini", dev ? "debug" : "paths", "rfidFile", dev ? "cmd.exe" : "RFIDQAR420.exe"),
     },
     csv: {
-        dir: IniRead("config.ini", dev ? "debug" : "paths", "csvDir", dev ? "test\" : "C:\RFID\PACKLABEL\"),
+        dir: IniRead("config.ini", dev ? "debug" : "paths", "csvDir", dev ? ".\test\" : "C:\RFID\PACKLABEL\"),
         file: IniRead("config.ini", dev ? "debug" : "paths", "csvFile", "RFID-PACKLABEL.csv"),
     },
 }
@@ -67,7 +79,7 @@ paths.csv.DefineProp("full", { Get: (this) => this.dir . this.file })
 
 
 ; =======================================================================================
-; CREATE GUI ============================================================================
+; ===================================== CREATE GUI ======================================
 ; =======================================================================================
 MyGui := Gui()
 MyGui.SetFont("s14", "Verdana")
@@ -76,7 +88,7 @@ MyGui.SetFont("s14", "Courier New")
 MyGui.Title := (!dev) ? "easyQC" : "easyQC - DEV MODE"
 ;MyGui.BackColor := "f1f5f9"
 
-defaultTab := (dev) ? 1 : 1 ; // DEBUG:
+defaultTab := (dev) ? 3 : 1 ; DEBUG
 
 MyGui.SetFont("s11")
 Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main", "Label", "Samples", "Print", "Settings"])
@@ -84,7 +96,7 @@ MyGui.SetFont("s14")
 ;Tab.Opt("BackgroundWhite")
 
 ; =======================================================================================
-; Main TAB ==============================================================================
+; ===================================== Main TAB ========================================
 
 Tab.UseTab(1)
 MyGui.AddGroupBox("w330 h275 cGray Section", "data")
@@ -129,14 +141,14 @@ MyGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 defaultButton := MyGui.AddButton("ys Default", "BUTTON")
 defaultButton.Visible := false
 
-MyGui.AddGroupBox("xs-20 y+10 W330 h75 cGray Section", "actions")
+MyGui.AddGroupBox("xs-20 y+25 W330 h75 cGray Section", "actions")
 openButton := MyGui.AddButton("xp+20 yp+25 Section", "open")
 startButton := MyGui.AddButton("ys Section", "start")
 
 statusBar := MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 
 ; =======================================================================================
-; Label TAB =============================================================================
+; ===================================== Label TAB =======================================
 
 Tab.UseTab(2)
 
@@ -174,7 +186,31 @@ MyGui.AddText("xs ys+35 Section", "Customer:")
 labelData.customer.gui := MyGui.AddEdit("ys w145", labelData.customer.value)
 
 ; =======================================================================================
-; SETTINGS TAB ==========================================================================
+; ==================================== Samples TAB ======================================
+
+Tab.UseTab(3)
+MyGui.AddGroupBox("x38 y+5 w330 h275 cGray Section", "data")
+
+MyGui.AddText("xp+20 yp+30 Section", "Initials:")
+sampleData.initials.gui := MyGui.AddEdit("ys w40 limit2", labelData.initials.value)
+
+MyGui.AddText("xs Section", "Customer:")
+sampleData.customer.gui := MyGui.AddEdit("ys w170", sampleData.customer.value)
+
+MyGui.AddText("xs Section", "   Order:")
+sampleData.order.gui := MyGui.AddEdit("ys w170", sampleData.order.value)
+
+MyGui.AddText("xs Section", "   Style:")
+sampleData.style.gui := MyGui.AddEdit("ys w170", sampleData.style.value)
+
+MyGui.AddText("xs Section", "    Roll:")
+sampleData.roll.gui := MyGui.AddEdit("ys w50", sampleData.roll.value)
+MyGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
+
+MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press ctrl-2 to output sample values inputted here")
+
+; =======================================================================================
+; ==================================== SETTINGS TAB =====================================
 
 Tab.UseTab(5)
 
@@ -201,7 +237,7 @@ settings.rfidWinPos.gui := MyGui.AddDropDownList("xs Section w280 " . rfidChoose
 MyGui.Show("NA" . (dev ? "x-425 y190" : "")) ; if dev, diff location
 
 ; =======================================================================================
-; SETUP EVENTS ==========================================================================
+; ==================================== SETUP EVENTS =====================================
 ; =======================================================================================
 For key, val in data.OwnProps()
     data.%key%.gui.onEvent("Change", onDataUpdated.Bind(key, val))
@@ -209,12 +245,14 @@ For key, val in data.OwnProps()
 For key, val in labelData.OwnProps()
     labelData.%key%.gui.onEvent("Change", onLabelDataUpdated.Bind(key, val))
 
+For key, val in sampleData.OwnProps()
+    sampleData.%key%.gui.onEvent("Change", onSampleDataUpdated.bind(key, val))
+
 settings.autoStyle.gui.onEvent("Click", onAutoStyleUpdated)
 settings.quickOrder.gui.onEvent("Click", onQuickOrderUpdated)
 settings.delay.gui.onEvent("Change", onDelayUpdated)
 paths.rfid.gui.onEvent("Change", onRfidProgramUpdated)
 settings.rfidWinPos.gui.onEvent("Change", onRfidWinPosUpdated)
-; // TODO: add DELAY event
 
 defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 openButton.onEvent("Click", onOpen)
@@ -225,7 +263,7 @@ writeButton.onEvent("Click", onWrite)
 MyGui.OnEvent("Close", onClose)
 
 ; =======================================================================================
-; FUNCTIONS =============================================================================
+; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
 onDataUpdated(key, val, *) {
     if (settings.autoStyle.gui.value && key = "upc")
@@ -248,6 +286,10 @@ onDataUpdated(key, val, *) {
 
 onLabelDataUpdated(key, val, *) {
     IniWrite(labelData.%key%.gui.value, "config.ini", "label", key)
+}
+
+onSampleDataUpdated(key, val, *) {
+    IniWrite(sampleData.%key%.gui.value, "config.ini", "sample", key)
 }
 
 onAutoStyleUpdated(*) {
@@ -467,7 +509,6 @@ onPrint(*) {
     Sleep inputDelay
     SendInput data.order.gui.value "{enter}"
     Sleep inputDelay
-    ; // TODO: make sure still works if empty
     SendInput data.upc.gui.value "{enter}"
     Sleep inputDelay
     SendInput data.style.gui.value "{enter}"
@@ -543,7 +584,7 @@ Setup:
         }
     }
 
-    ;// DEBUG
+    ; DEBUG
     ; if (dev) {
     ;     outputString := ""
     ;     For key, val in data.OwnProps()
