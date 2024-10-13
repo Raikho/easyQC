@@ -192,7 +192,7 @@ Tab.UseTab(3)
 MyGui.AddGroupBox("x38 y+5 w330 h275 cGray Section", "data")
 
 MyGui.AddText("xp+20 yp+30 Section", "Initials:")
-sampleData.initials.gui := MyGui.AddEdit("ys w40 limit2", labelData.initials.value)
+sampleData.initials.gui := MyGui.AddEdit("ys w40 limit2", sampleData.initials.value)
 
 MyGui.AddText("xs Section", "Customer:")
 sampleData.customer.gui := MyGui.AddEdit("ys w170", sampleData.customer.value)
@@ -355,13 +355,21 @@ dateChange(num) {
     } catch {
         return ToolTip("had an error splitting date")
     }
-    if (StrLen(month) != 2 || StrLen(day) != 2 || StrLen(year) != 2) {
-        return ToolTip("not proper lengths: month, day, length" . month . ", " . day . ", " . year)
+
+    if StrLen(month) = 1
+        month := '0' . month
+    if StrLen(day) = 1
+        day := '0' . day
+    if StrLen(year) = 2
+        year := '20' . month
+
+    if (StrLen(month) != 2 || StrLen(day) != 2 || (StrLen(year) != 4)) {
+        return ToolTip("not proper lengths: month, day, year: " . StrLen(month) . ", " . StrLen(day) . ", " . StrLen(year))
     }
 
-    newDate := DateAdd("20" . year . month . day, num, "days")
+    newDate := DateAdd(year . month . day, num, "days")
 
-    labelData.date.gui.value := FormatTime(newDate, "MM/dd/yy")
+    labelData.date.gui.value := FormatTime(newDate, "MM/dd/yyyy")
 
     onLabelDataUpdated("date", date)
 }
