@@ -1,4 +1,8 @@
 ﻿; TODO:
+; restrictions to hotkeys working with firefox
+; option to add leading double space
+; option to add leading 0
+; open print queue windows
 ; Options to disable hotkeys
 ; Opening & Auto Filling QC program
 ; Printer scanning
@@ -666,8 +670,10 @@ onClose(*) {
 ^1:: onPrint()
 ^2:: onSamplePrint()
 
-#HotIf WinActive("ahk_class XLMAIN")
-!Numpad1:: SendInput printData.initials.gui.value . " P-11+{enter}{enter}"
+#HotIf WinActive("ahk_class XLMAIN") or WinActive("ahk_class Chrome_WidgetWin_1")
+!Numpad1:: SendInput printData.initials.gui.value . " P-01+{enter}{enter}"
+!Numpad2:: SendInput printData.initials.gui.value . " P-02+{enter}{enter}"
+!Numpad3:: SendInput printData.initials.gui.value . " P-03+{enter}{enter}"
 !Numpad4:: SendInput printData.initials.gui.value . " P-04+{enter}{enter}"
 !Numpad5:: SendInput printData.initials.gui.value . " P-05+{enter}{enter}"
 !Numpad6:: SendInput printData.initials.gui.value . " P-06+{enter}{enter}"
