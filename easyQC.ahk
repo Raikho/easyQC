@@ -224,15 +224,18 @@ printdata.initials.gui := MyGui.AddEdit("ys w40 limit2", printData.initials.valu
 
 MyGui.AddText("xs yp+50 Section Wrap w300 cBlue", "Press Alt + Numpad[0-9] to output [ZZ P-04] through [ZZ P-11], (Numpad1 is for P-11, Numpad0 is for P-10) ")
 
-searchPrintersButton := MyGui.AddButton("xp y+30 Section", "Search Printers")
+searchPrintersButton := MyGui.AddButton("xp y+30 Section", "Open print queues")
 searchPrintersButton.OnEvent("click", onSearchPrinters)
 onSearchPrinters(*) {
-    printers := ""
+    ;ahk_class PrintUI_PrinterQueue
+    ;CLSID for "Printers and Faxes"
+    Run("::{2227A280-3AEA-1069-A2DE-08002B30309D}\Microsoft Print to PDF")
+    Sleep(300)
 
-    Loop Reg, "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Devices"
-        printers .= A_loopRegName . "`n"
+    MonitorGetWorkArea 2, &left1, &top1, &right1, &bot1
+    ;WinMove(x, y, width, height, "A")
 
-    TrayTip("printers:`n" . printers)
+    moveToArea(1, "left")
 }
 
 
