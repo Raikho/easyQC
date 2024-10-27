@@ -598,50 +598,35 @@ onWrite(*) {
 
 }
 
-onPrint(*) {
-    inputDelay := settings.delay.gui.value
+inputDataAndSleep(string) {
+    if WinActive("ahk_class XLMAIN") or WinActive("ahk_class Chrome_WidgetWin_1")
+        return
+    SendInput(string . "{enter}")
+    Sleep settings.delay.gui.value
+}
 
-    SendInput data.initials.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput data.customer.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput data.order.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput data.upc.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput data.style.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput data.roll.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput "Y{enter}"
-    Sleep inputDelay
-    SendInput "N{enter}"
-    Sleep inputDelay
-    SendInput "Y{enter}"
-    Sleep inputDelay
+onPrint(*) {
+    inputDataAndSleep(data.initials.gui.value)
+    inputDataAndSleep(data.customer.gui.value)
+    inputDataAndSleep(data.order.gui.value)
+    inputDataAndSleep(data.upc.gui.value)
+    inputDataAndSleep(data.style.gui.value)
+    inputDataAndSleep(data.roll.gui.value)
+    inputDataAndSleep("Y")
+    inputDataAndSleep("N")
+    inputDataAndSleep("Y")
 }
 
 onSamplePrint(*) {
-    inputDelay := settings.delay.gui.value
-
-    SendInput sampleData.initials.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput sampleData.customer.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput sampleData.order.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput "{enter}"
-    Sleep inputDelay
-    SendInput sampleData.style.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput sampleData.roll.gui.value "{enter}"
-    Sleep inputDelay
-    SendInput "Y{enter}"
-    Sleep inputDelay
-    SendInput "N{enter}"
-    Sleep inputDelay
-    SendInput "Y{enter}"
-    Sleep inputDelay
+    inputDataAndSleep(data.initials.gui.value)
+    inputDataAndSleep(data.customer.gui.value)
+    inputDataAndSleep(data.order.gui.value)
+    inputDataAndSleep("")
+    inputDataAndSleep(data.style.gui.value)
+    inputDataAndSleep(data.roll.gui.value)
+    inputDataAndSleep("Y")
+    inputDataAndSleep("N")
+    inputDataAndSleep("Y")
 }
 
 printToCtrl(ctrl) {
