@@ -1,4 +1,5 @@
 ﻿; TODO:
+; test out magit
 ; restrictions to hotkeys working with firefox
 ; option to add leading double space
 ; option to add leading 0
