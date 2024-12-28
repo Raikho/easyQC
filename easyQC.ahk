@@ -14,6 +14,17 @@ window.height := 400
 window.x := -600
 window.y := 300
 
+data := {
+	initials: { value: "..", displayName: "Initials"},
+	customer: { value: "<customer>", displayName: "Customer"},
+	order: { value: "20010....", displayName: "Order"},
+	upc: { value: "............", displayName: "UPC"},
+	style: { value: "....", displayName: "Style"},
+	roll: { value: "1", displayName: "Roll"},
+}
+
+PALE_BLUE := "eef2ff"
+
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
 ; =======================================================================================
@@ -43,4 +54,45 @@ setupGuiAppearance(gui) {
 
 setupMainTab(gui) {
 	gui.AddGroupBox("w330 h275 cGray Section", "data")
+
+	textOpt := { xPrev: 20, yPrev: 20, section: true }
+	editOpt := { uppercase: true, charLmit: 2, ySection: 0, width: 40, background: PALE_BLUE }
+	createEdit(MyGui, data.initials, opt(textOpt), opt(editOpt))
+
+
 }
+
+createEdit(gui, obj, opt1, opt2) {
+	gui.AddText(opt1, obj.displayName)
+	obj.gui := gui.AddEdit(opt2, obj.value)
+}
+
+opt(obj) {
+	str := ""
+	if (obj.HasProp("xPrev"))
+		str .= "xp" . "+" . obj.xPrev . " "
+	if (obj.HasProp("yPrev"))
+		str .= "yp" . "+" . obj.yPrev . " "
+
+	if (obj.HasProp("xSection"))
+		str .= "xs" . "+" . obj.xSection . " "
+	if (obj.HasProp("ySection"))
+		str .= "ys" . "+" . obj.ySection . " "
+
+	if (obj.HasProp("width"))
+		str .= "w" . obj.width . " "
+	if (obj.HasProp("height"))
+		str .= "h" . obj.height . " "
+
+	if (obj.HasProp("section"))
+		str .= "Section" . " "
+
+	if (obj.HasProp("background"))
+		str .= "background" . obj.background . " "
+	if (obj.HasProp("charLimit"))
+		str .= "limit" . obj.charLimit . " "
+	if (obj.HasProp("uppercase"))
+		str .= "Uppercase" . " "
+
+	return str
+}	
