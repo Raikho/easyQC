@@ -9,8 +9,8 @@
 ; =======================================================================================
 
 window := {}
-window.width := 300
-window.height := 200
+window.width := 400
+window.height := 400
 window.x := -600
 window.y := 300
 
@@ -19,7 +19,28 @@ window.y := 300
 ; =======================================================================================
 
 MyGui := Gui()
-MyGui.Title := "easyQC"
+setupGuiAppearance(MyGui)
+
+defaultTab := 1
+Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main"])
+
+setupMainTab(MyGui)
 
 
 MyGui.Show(Format("w{1} h{2} x{3} y{4}", window.width, window.height, window.x, window.y))
+
+; =======================================================================================
+; ===================================== FUNCTIONS =======================================
+; =======================================================================================
+
+setupGuiAppearance(gui) {
+	gui.Title := "easyQC" ; TODO: change for dev mode
+	gui.SetFont("s14", "Verdana")
+	gui.SetFont("s14", "Courier")
+	gui.SetFont("s14", "Courier New")
+	gui.SetFont("s11")
+}
+
+setupMainTab(gui) {
+	gui.AddGroupBox("w330 h275 cGray Section", "data")
+}
