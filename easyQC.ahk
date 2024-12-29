@@ -62,9 +62,11 @@ setupMainTab(gui) {
 
 }
 
-createEdit(gui, obj, opt1, opt2) {
-	gui.AddText(opt1, obj.displayName)
-	obj.gui := gui.AddEdit(opt2, obj.value)
+createEdit(gui, obj, textOptions, editboxOptions) {
+	displayName := Format("{:8}", obj.displayName) . ":" ;; align right 8 characters
+
+	gui.AddText(formatOptions(textOptions), displayName)
+	obj.gui := gui.AddEdit(formatOptions(editboxOptions), obj.value)
 }
 
 opt(obj) {
