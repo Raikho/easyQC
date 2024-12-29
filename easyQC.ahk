@@ -12,7 +12,10 @@ window := {}
 window.width := 400
 window.height := 400
 window.x := -600
-window.y := 300
+window.y := 160
+
+FONT_SIZE := 14
+TAB_FONT_SIZE := 11
 
 data := {
 	initials: { value: "..", displayName: "Initials"},
@@ -32,8 +35,10 @@ PALE_BLUE := "eef2ff"
 MyGui := Gui()
 setupGuiAppearance(MyGui)
 
+MyGui.SetFont("s" . TAB_FONT_SIZE)
 defaultTab := 1
 Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main"])
+MyGui.SetFont("s" . FONT_SIZE)
 
 setupMainTab(MyGui)
 
@@ -46,10 +51,9 @@ MyGui.Show(Format("w{1} h{2} x{3} y{4}", window.width, window.height, window.x, 
 
 setupGuiAppearance(gui) {
 	gui.Title := "easyQC" ; TODO: change for dev mode
-	gui.SetFont("s14", "Verdana")
-	gui.SetFont("s14", "Courier")
-	gui.SetFont("s14", "Courier New")
-	gui.SetFont("s11")
+	gui.SetFont("s" . FONT_SIZE, "Verdana")
+	gui.SetFont("s" . FONT_SIZE, "Courier")
+	gui.SetFont("s" . FONT_SIZE, "Courier New")
 }
 
 setupMainTab(gui) {
@@ -95,6 +99,11 @@ formatOptions(obj) {
 		str .= "limit" . obj.charLimit . " "
 	if (obj.HasProp("uppercase"))
 		str .= "Uppercase" . " "
+	if (obj.HasProp("number"))
+		str .= "number" . " "
+
+	if(obj.HasProp("fontSize"))
+		str .= "s" . obj.fontSize . " "
 
 	return str
 }	
