@@ -1,19 +1,22 @@
-﻿; TODO:
-
-
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 #SingleInstance force
 
 ; =======================================================================================
 ; ==================================== LOAD VARIABLES ===================================
 ; =======================================================================================
 
+devMode := IniRead("config.ini", "debug", "devMode", 0)
+
+; constants
 WINDOW_WIDTH := 400
 WINDOW_HEIGHT :=  400
-WINDOW_X := -600
-WINDOW_Y := 160
+WINDOW_X := devMode ? -600 : 0
+WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
+; colors
+PALE_BLUE := "eef2ff"
+NAVY_BLUE := "4d6d9a"
 
 data := {
 	initials: { value: "..", displayName: "Initials"},
@@ -23,9 +26,7 @@ data := {
 	style: { value: "....", displayName: "Style"},
 	roll: { value: "1", displayName: "Roll"},
 }
-
-PALE_BLUE := "eef2ff"
-NAVY_BLUE := "4d6d9a"
+populateFromIni(data, "main")
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
@@ -39,15 +40,20 @@ setupTabs(MyGui, defaultTab)
 
 setupMainTab(MyGui)
 
-
 MyGui.Show(Format("w{1} h{2} x{3} y{4}", WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
 
+populateFromIni(obj, section) {
+	for key, val in obj.OwnProps() {
+		data.%key%.value := IniRead("config.ini", section, key, val.value)
+	}
+}
+
 setupGuiAppearance(gui) {
-	gui.Title := "easyQC" ; TODO: change for dev mode
+	gui.Title := devMode ? "easyQC - dev mode" : "easyQC"
 	gui.SetFont("s" . FONT_SIZE, "Verdana")
 	gui.SetFont("s" . FONT_SIZE, "Courier")
 	gui.SetFont("s" . FONT_SIZE, "Courier New")
