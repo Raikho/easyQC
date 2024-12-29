@@ -26,7 +26,10 @@ data := {
 	style: { value: "....", displayName: "Style"},
 	roll: { value: "1", displayName: "Roll"},
 }
+populatePropNames(data)
 populateFromIni(data, "main")
+
+IniWrite("TEST", "config.ini", "main", "customer")
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
@@ -45,6 +48,12 @@ MyGui.Show(Format("w{1} h{2} x{3} y{4}", WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
+
+populatePropNames(obj) {
+	for key, val in obj.OwnProps() {
+		data.%key%.propName := key
+	}
+}
 
 populateFromIni(obj, section) {
 	for key, val in obj.OwnProps() {
@@ -78,15 +87,15 @@ setupMainTab(gui) {
 	editOpt := {  ySection: 0, width: 170, background: PALE_BLUE }
 	createEdit(gui, data.customer, textOpt, editOpt)
 
-	; UPC
-	textOpt := { xSection: 0, newSection: true }
-	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
-	createEdit(gui, data.upc, textOpt, editOpt)
-
 	; Order
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := {  number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
 	createEdit(gui, data.order, textOpt, editOpt)
+
+	; UPC
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
+	createEdit(gui, data.upc, textOpt, editOpt)
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
@@ -95,8 +104,7 @@ setupMainTab(gui) {
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { charLimit: 12, ySection: 0, width: 70,
-		background: NAVY_BLUE, center: True }
+	editOpt := { charLimit: 12, ySection: 0, width: 70, background: NAVY_BLUE, center: True }
 	fontOpt := { bold: true, foreground: PALE_BLUE, fontName: "Arial"}
 	createEdit(gui, data.roll, textOpt, editOpt, fontOpt)
 	gui.AddUpDown("Range1-200 Wrap", data.roll.value)
@@ -108,10 +116,15 @@ createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
 	gui.AddText(formatOptions(textOptions), displayName)
 	obj.gui := gui.AddEdit(formatOptions(editboxOptions), obj.value)
 
-
 	if (IsSet(fontOptions))
 		obj.gui.setFont(formatOptions(fontOptions),
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
+
+	obj.gui.onEvent("Change", updateData.Bind(obj.propName))
+}
+
+updateData(key, *) {
+	IniWrite(data.%key%.gui.value, "config.ini", "main", key)
 }
 
 formatOptions(obj) {
