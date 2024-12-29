@@ -8,14 +8,12 @@
 ; ==================================== LOAD VARIABLES ===================================
 ; =======================================================================================
 
-window := {}
-window.width := 400
-window.height := 400
-window.x := -600
-window.y := 160
-
+WINDOW_WIDTH := 400
+WINDOW_HEIGHT :=  400
+WINDOW_X := -600
+WINDOW_Y := 160
 FONT_SIZE := 14
-TAB_FONT_SIZE := 11
+TAB_FONT_SIZE := 10
 
 data := {
 	initials: { value: "..", displayName: "Initials"},
@@ -36,15 +34,13 @@ NAVY_BLUE := "4d6d9a"
 MyGui := Gui()
 setupGuiAppearance(MyGui)
 
-MyGui.SetFont("s" . TAB_FONT_SIZE)
 defaultTab := 1
-Tab := MyGui.AddTab3("-wrap choose" . defaultTab, ["Main"])
-MyGui.SetFont("s" . FONT_SIZE)
+setupTabs(MyGui, defaultTab)
 
 setupMainTab(MyGui)
 
 
-MyGui.Show(Format("w{1} h{2} x{3} y{4}", window.width, window.height, window.x, window.y))
+MyGui.Show(Format("w{1} h{2} x{3} y{4}", WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
@@ -55,6 +51,12 @@ setupGuiAppearance(gui) {
 	gui.SetFont("s" . FONT_SIZE, "Verdana")
 	gui.SetFont("s" . FONT_SIZE, "Courier")
 	gui.SetFont("s" . FONT_SIZE, "Courier New")
+}
+
+setupTabs(gui, defaultTab) {
+	MyGui.SetFont("s" . TAB_FONT_SIZE)
+	Tab := gui.AddTab3("-wrap choose" . defaultTab, ["MAIN"])
+	MyGui.SetFont("s" . FONT_SIZE)
 }
 
 setupMainTab(gui) {
