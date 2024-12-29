@@ -14,6 +14,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
+DEFAULT_TAB := 1
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
@@ -29,21 +30,22 @@ data := {
 populatePropNames(data)
 populateFromIni(data, "main")
 
-IniWrite("TEST", "config.ini", "main", "customer")
-
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
 ; =======================================================================================
 
-MyGui := Gui()
+MyGui := Gui("+0x40000") ; resizable
 setupGuiAppearance(MyGui)
 
-defaultTab := 1
-setupTabs(MyGui, defaultTab)
-
+setupTabs(MyGui)
 setupMainTab(MyGui)
 
-MyGui.Show(Format("w{1} h{2} x{3} y{4}", WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
+statusBar := MyGui.AddStatusBar("xs", "status bar text")
+statusBar.SetFont("s10")
+
+MyGui.OnEvent("Close", (*) => ExitApp)
+MyGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
+	WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
@@ -64,13 +66,15 @@ populateFromIni(obj, section) {
 setupGuiAppearance(gui) {
 	gui.Title := devMode ? "easyQC - dev mode" : "easyQC"
 	gui.SetFont("s" . FONT_SIZE, "Verdana")
-	gui.SetFont("s" . FONT_SIZE, "Courier")
-	gui.SetFont("s" . FONT_SIZE, "Courier New")
+	gui.SetFont(, "Courier")
+	gui.SetFont(, "Courier New")
+;	gui.SetFont(, "DejaVu Sans Mono")
+
 }
 
-setupTabs(gui, defaultTab) {
+setupTabs(gui) {
 	MyGui.SetFont("s" . TAB_FONT_SIZE)
-	Tab := gui.AddTab3("-wrap choose" . defaultTab, ["MAIN"])
+	Tab := gui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main"])
 	MyGui.SetFont("s" . FONT_SIZE)
 }
 
@@ -78,23 +82,23 @@ setupMainTab(gui) {
 	gui.AddGroupBox("w330 h275 cGray Section", "data")
 
 	; INITIALS
-	textOpt := { xPrev: 20, yPrev: 20, newSection: true }
-	editOpt := { uppercase: true, charLmit: 2, ySection: 0, width: 40, background: PALE_BLUE }
+	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
+	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, background: PALE_BLUE }
 	createEdit(gui, data.initials, textOpt, editOpt)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := {  ySection: 0, width: 170, background: PALE_BLUE }
+	editOpt := { ySection: 0, width: 170, background: PALE_BLUE }
 	createEdit(gui, data.customer, textOpt, editOpt)
 
 	; Order
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := {  number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
+	editOpt := { number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
 	createEdit(gui, data.order, textOpt, editOpt)
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
+	editOpt := { number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
 	createEdit(gui, data.upc, textOpt, editOpt)
 
 	; STYLE
@@ -108,6 +112,10 @@ setupMainTab(gui) {
 	fontOpt := { bold: true, foreground: PALE_BLUE, fontName: "Arial"}
 	createEdit(gui, data.roll, textOpt, editOpt, fontOpt)
 	gui.AddUpDown("Range1-200 Wrap", data.roll.value)
+
+	buttonOpt := { xPrev: 140, yPrev: 30, width: 50, height: 30}
+	fontOpt := { fontSize: 8 }
+	createButton(gui, buttonOpt, "clear", (*) => clearObjGui(data), fontOpt)
 }
 
 createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
@@ -120,11 +128,31 @@ createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
 		obj.gui.setFont(formatOptions(fontOptions),
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 
-	obj.gui.onEvent("Change", updateData.Bind(obj.propName))
+	obj.gui.onEvent("Change", (*) => updateData(obj.propName))
 }
 
-updateData(key, *) {
+createButton(gui, buttonOptions, name, my_function, fontOptions?) {
+	btn := gui.AddButton(formatOptions(buttonOptions), name)
+	btn.onEvent("Click", my_function)
+
+	if (IsSet(fontOptions))
+		btn.setFont(formatOptions(fontOptions),
+	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
+
+
+}
+
+updateData(key) {
 	IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+}
+
+clearObjGui(obj) {
+	for key, val in obj.OwnProps() {
+		obj.%key%.gui.value := ""
+	}
+}
+
+resetData(key) {
 }
 
 formatOptions(obj) {
