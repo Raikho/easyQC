@@ -27,6 +27,7 @@ data := {
 }
 
 PALE_BLUE := "eef2ff"
+NAVY_BLUE := "4d6d9a"
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
@@ -60,42 +61,49 @@ setupMainTab(gui) {
 	gui.AddGroupBox("w330 h275 cGray Section", "data")
 
 	; INITIALS
-	textOpt := { xPrev: 20, yPrev: 20, section: true }
+	textOpt := { xPrev: 20, yPrev: 20, newSection: true }
 	editOpt := { uppercase: true, charLmit: 2, ySection: 0, width: 40, background: PALE_BLUE }
-	createEdit(MyGui, data.initials, textOpt, editOpt)
+	createEdit(gui, data.initials, textOpt, editOpt)
 
 	; CUSTOMER
-	textOpt := { xSection: 0, section: true }
+	textOpt := { xSection: 0, newSection: true }
 	editOpt := {  ySection: 0, width: 170, background: PALE_BLUE }
-	createEdit(MyGui, data.customer, textOpt, editOpt)
+	createEdit(gui, data.customer, textOpt, editOpt)
 
 	; UPC
-	textOpt := { xSection: 0, section: true }
+	textOpt := { xSection: 0, newSection: true }
 	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
-	createEdit(MyGui, data.upc, textOpt, editOpt)
+	createEdit(gui, data.upc, textOpt, editOpt)
 
 	; Order
-	textOpt := { xSection: 0, section: true }
+	textOpt := { xSection: 0, newSection: true }
 	editOpt := {  number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
-	createEdit(MyGui, data.order, textOpt, editOpt)
+	createEdit(gui, data.order, textOpt, editOpt)
 
 	; STYLE
-	textOpt := { xSection: 0, section: true }
+	textOpt := { xSection: 0, newSection: true }
 	editOpt := { number: true, charLimit: 4, ySection: 0, width: 60, background: PALE_BLUE }
-	createEdit(MyGui, data.style, textOpt, editOpt)
+	createEdit(gui, data.style, textOpt, editOpt)
 
 	; ROLL
-	textOpt := { xSection: 0, section: true }
-	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 40, background: PALE_BLUE }
-	createEdit(MyGui, data.roll, textOpt, editOpt)
-
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { charLimit: 12, ySection: 0, width: 70,
+		background: NAVY_BLUE, center: True }
+	fontOpt := { bold: true, foreground: PALE_BLUE, fontName: "Arial"}
+	createEdit(gui, data.roll, textOpt, editOpt, fontOpt)
+	gui.AddUpDown("Range1-200 Wrap", data.roll.value)
 }
 
-createEdit(gui, obj, textOptions, editboxOptions) {
+createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
 	displayName := Format("{:8}", obj.displayName) . ":" ;; align right 8 characters
 
 	gui.AddText(formatOptions(textOptions), displayName)
 	obj.gui := gui.AddEdit(formatOptions(editboxOptions), obj.value)
+
+
+	if (IsSet(fontOptions))
+		obj.gui.setFont(formatOptions(fontOptions),
+	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 }
 
 formatOptions(obj) {
@@ -115,7 +123,7 @@ formatOptions(obj) {
 	if (obj.HasProp("height"))
 		str .= "h" . obj.height . " "
 
-	if (obj.HasProp("section"))
+	if (obj.HasProp("newSection"))
 		str .= "Section" . " "
 
 	if (obj.HasProp("background"))
@@ -126,9 +134,14 @@ formatOptions(obj) {
 		str .= "Uppercase" . " "
 	if (obj.HasProp("number"))
 		str .= "number" . " "
-
+	if (obj.HasProp("center"))
+		str .= "center" . " "
 	if(obj.HasProp("fontSize"))
 		str .= "s" . obj.fontSize . " "
+	if (obj.HasProp("foreground"))
+		str .= "c" . obj.foreground . " "
+	if (obj.HasProp("bold"))
+		str .= "bold" . " "
 
 	return str
 }	
