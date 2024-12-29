@@ -59,10 +59,35 @@ setupGuiAppearance(gui) {
 setupMainTab(gui) {
 	gui.AddGroupBox("w330 h275 cGray Section", "data")
 
+	; INITIALS
 	textOpt := { xPrev: 20, yPrev: 20, section: true }
 	editOpt := { uppercase: true, charLmit: 2, ySection: 0, width: 40, background: PALE_BLUE }
-	createEdit(MyGui, data.initials, opt(textOpt), opt(editOpt))
+	createEdit(MyGui, data.initials, textOpt, editOpt)
 
+	; CUSTOMER
+	textOpt := { xSection: 0, section: true }
+	editOpt := {  ySection: 0, width: 170, background: PALE_BLUE }
+	createEdit(MyGui, data.customer, textOpt, editOpt)
+
+	; UPC
+	textOpt := { xSection: 0, section: true }
+	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
+	createEdit(MyGui, data.upc, textOpt, editOpt)
+
+	; Order
+	textOpt := { xSection: 0, section: true }
+	editOpt := {  number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
+	createEdit(MyGui, data.order, textOpt, editOpt)
+
+	; STYLE
+	textOpt := { xSection: 0, section: true }
+	editOpt := { number: true, charLimit: 4, ySection: 0, width: 60, background: PALE_BLUE }
+	createEdit(MyGui, data.style, textOpt, editOpt)
+
+	; ROLL
+	textOpt := { xSection: 0, section: true }
+	editOpt := {  number: true, charLimit: 12, ySection: 0, width: 40, background: PALE_BLUE }
+	createEdit(MyGui, data.roll, textOpt, editOpt)
 
 }
 
