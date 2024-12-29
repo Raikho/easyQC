@@ -40,7 +40,7 @@ setupGuiAppearance(MyGui)
 setupTabs(MyGui)
 setupMainTab(MyGui)
 
-statusBar := MyGui.AddStatusBar("xs", "status bar text")
+statusBar := MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 statusBar.SetFont("s10")
 
 MyGui.OnEvent("Close", (*) => ExitApp)
@@ -68,8 +68,6 @@ setupGuiAppearance(gui) {
 	gui.SetFont("s" . FONT_SIZE, "Verdana")
 	gui.SetFont(, "Courier")
 	gui.SetFont(, "Courier New")
-;	gui.SetFont(, "DejaVu Sans Mono")
-
 }
 
 setupTabs(gui) {
@@ -138,8 +136,6 @@ createButton(gui, buttonOptions, name, my_function, fontOptions?) {
 	if (IsSet(fontOptions))
 		btn.setFont(formatOptions(fontOptions),
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
-
-
 }
 
 updateData(key) {
@@ -193,4 +189,45 @@ formatOptions(obj) {
 		str .= "bold" . " "
 
 	return str
-}	
+}
+
+; =======================================================================================
+; ====================================== HOTKEYS ========================================
+; =======================================================================================
+
+#HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
+^1::onPrint()
+
+onPrint(*) {
+	inputDataAndSleep(data.initials.gui.value)
+	inputDataAndSleep(data.customer.gui.value)
+	inputDataAndSleep(data.order.gui.value)
+	inputDataAndSleep(data.upc.gui.value)
+	inputDataAndSleep(data.style.gui.value)
+	inputDataAndSleep(data.roll.gui.value)
+	inputDataAndSleep("Y")
+	inputDataAndSleep("N")
+	inputDataAndSleep("Y")
+}
+
+inputDataAndSleep(obj) {
+	if classActive("XLMAIN", "Chrome_WidgetWin_1") {
+		return
+	}
+	SendInput(obj . "{enter}")
+	Sleep(150)
+}
+
+exeActive(params*) {
+	for index, exe in params
+	if (WinActive("ahk_exe " . exe))
+		return true
+	return false
+}
+classActive(params*) {
+	for index, cls in params
+	if (WinActive("ahk_class " . cls))
+		return true
+	return false
+}
+
