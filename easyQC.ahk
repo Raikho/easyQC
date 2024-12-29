@@ -69,7 +69,7 @@ createEdit(gui, obj, textOptions, editboxOptions) {
 	obj.gui := gui.AddEdit(formatOptions(editboxOptions), obj.value)
 }
 
-opt(obj) {
+formatOptions(obj) {
 	str := ""
 	if (obj.HasProp("xPrev"))
 		str .= "xp" . "+" . obj.xPrev . " "
