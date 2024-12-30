@@ -138,6 +138,8 @@ setupMainTab() {
 	buttonOpt := { xPrev: 140, yPrev: 30, width: 50, height: 30}
 	fontOpt := { fontSize: 8 }
 	createButton(buttonOpt, "clear", (*) => clearItems(data), fontOpt)
+
+	setupPressEnterForNextItem()
 }
 
 setupSettingsTab() {
@@ -156,6 +158,12 @@ setupSettingsTab() {
 	createCheckbox(settings.quickOrder, opt)
 }
 
+setupPressEnterForNextItem() {
+	defaultButton := MyGui.AddButton("ys Default", "button")
+	defaultButton.Visible := false
+	defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
+}
+
 createEdit(item, textOptions, editboxOptions, fontOptions?) {
 	displayName := Format("{:8}", item.displayName) . ":" ;; align right 8 characters
 
@@ -171,6 +179,7 @@ createEdit(item, textOptions, editboxOptions, fontOptions?) {
 
 createButton(buttonOptions, name, my_function, fontOptions?) {
 	btn := myGui.AddButton(formatOptions(buttonOptions), name)
+	btn.Opt("+Default")
 	btn.onEvent("Click", my_function)
 
 	if (IsSet(fontOptions))
