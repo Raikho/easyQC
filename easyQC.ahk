@@ -20,15 +20,23 @@ PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
 
 data := {
-	initials: { value: "..", displayName: "Initials"},
-	customer: { value: "<customer>", displayName: "Customer"},
-	order: { value: "20010....", displayName: "Order"},
-	upc: { value: "............", displayName: "UPC"},
-	style: { value: "....", displayName: "Style"},
-	roll: { value: "1", displayName: "Roll"},
+	initials: { value: "..", displayName: "Initials" },
+	customer: { value: "<customer>", displayName: "Customer" },
+	order: { value: "20010....", displayName: "Order" },
+	upc: { value: "............", displayName: "UPC" },
+	style: { value: "....", displayName: "Style" },
+	roll: { value: "1", displayName: "Roll" },
 }
-populatePropNames(data)
+populatePropNames(data, "main")
 populateFromIni(data, "main")
+
+settings := {
+	delay: { value: 100, displayName: "Delay (ms)" },
+	autoStyle : { value: 0, displayName: "Auto Style" },
+	quickOrder: { value: 0, displayName: "Quick Order" },
+}
+populatePropNames(settings, "settings")
+populateFromIni(settings, "settings")
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
@@ -52,15 +60,16 @@ MyGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
 ; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
 
-populatePropNames(obj) {
+populatePropNames(obj, section) {
 	for key, val in obj.OwnProps() {
-		data.%key%.propName := key
+		obj.%key%.propName := key
+		obj.%key%.section := section
 	}
 }
 
 populateFromIni(obj, section) {
 	for key, val in obj.OwnProps() {
-		data.%key%.value := IniRead("config.ini", section, key, val.value)
+		obj.%key%.value := IniRead("config.ini", section, key, val.value)
 	}
 }
 
@@ -123,12 +132,15 @@ setupSettingsTab(gui) {
 
 	gui.AddGroupBox("w330 h310 cGray Section", "general")
 
-	gui.AddText("xp+20 yp+45 Section", "Delay")
+	gui.AddText("xp+20 yp+45 Section", settings.delay.displayName)
 	gui.AddEdit("ys w80")
-	gui.AddUpDown("range1-9999 Wrap", 100)
+	gui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
-	gui.AddCheckBox("xs Section", "Auto Style")
-	gui.AddCheckBox("xs Section", "Quick Order")
+	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value}
+	createCheckbox(gui, settings.autoStyle, opt)
+
+	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value}
+	createCheckbox(gui, settings.quickOrder, opt)
 }
 
 createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
@@ -153,8 +165,18 @@ createButton(gui, buttonOptions, name, my_function, fontOptions?) {
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 }
 
+createCheckbox(gui, obj, options) {
+	obj.gui := gui.AddCheckBox(formatOptions(options), obj.displayName)
+
+	obj.gui.onEvent("Click", (*) => toggleCheckbox(obj))
+}
+
 updateData(key) {
 	IniWrite(data.%key%.gui.value, "config.ini", "main", key)
+}
+
+toggleCheckbox(obj) {
+	IniWrite(obj.gui.value, "config.ini", obj.section, obj.propName)
 }
 
 clearObjGui(obj) {
@@ -172,7 +194,6 @@ formatOptions(obj) {
 		str .= "xp" . "+" . obj.xPrev . " "
 	if (obj.HasProp("yPrev"))
 		str .= "yp" . "+" . obj.yPrev . " "
-
 	if (obj.HasProp("xSection"))
 		str .= "xs" . "+" . obj.xSection . " "
 	if (obj.HasProp("ySection"))
@@ -183,25 +204,27 @@ formatOptions(obj) {
 	if (obj.HasProp("height"))
 		str .= "h" . obj.height . " "
 
-	if (obj.HasProp("newSection"))
+	if (obj.HasProp("newSection") && obj.newSection)
 		str .= "Section" . " "
 
 	if (obj.HasProp("background"))
 		str .= "background" . obj.background . " "
 	if (obj.HasProp("charLimit"))
 		str .= "limit" . obj.charLimit . " "
-	if (obj.HasProp("uppercase"))
+	if (obj.HasProp("uppercase") && obj.uppercase)
 		str .= "Uppercase" . " "
 	if (obj.HasProp("number"))
 		str .= "number" . " "
-	if (obj.HasProp("center"))
+	if (obj.HasProp("center") && obj.center)
 		str .= "center" . " "
 	if(obj.HasProp("fontSize"))
 		str .= "s" . obj.fontSize . " "
 	if (obj.HasProp("foreground"))
 		str .= "c" . obj.foreground . " "
-	if (obj.HasProp("bold"))
+	if (obj.HasProp("bold") && obj.bold)
 		str .= "bold" . " "
+	if (obj.HasProp("checked") && obj.checked == 1)
+		str .= "checked" . " "
 
 	return str
 }
