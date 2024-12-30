@@ -14,7 +14,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := 1
+DEFAULT_TAB := devMode ? 2 : 1
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
@@ -37,8 +37,9 @@ populateFromIni(data, "main")
 MyGui := Gui("+0x40000") ; resizable
 setupGuiAppearance(MyGui)
 
-setupTabs(MyGui)
+Tab := setupTabs(MyGui)
 setupMainTab(MyGui)
+setupSettingsTab(MyGui)
 
 statusBar := MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 statusBar.SetFont("s10")
@@ -72,8 +73,9 @@ setupGuiAppearance(gui) {
 
 setupTabs(gui) {
 	MyGui.SetFont("s" . TAB_FONT_SIZE)
-	Tab := gui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main"])
+	Tab := gui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main", "Settings"])
 	MyGui.SetFont("s" . FONT_SIZE)
+	return Tab
 }
 
 setupMainTab(gui) {
@@ -114,6 +116,19 @@ setupMainTab(gui) {
 	buttonOpt := { xPrev: 140, yPrev: 30, width: 50, height: 30}
 	fontOpt := { fontSize: 8 }
 	createButton(gui, buttonOpt, "clear", (*) => clearObjGui(data), fontOpt)
+}
+
+setupSettingsTab(gui) {
+	Tab.UseTab(2)
+
+	gui.AddGroupBox("w330 h310 cGray Section", "general")
+
+	gui.AddText("xp+20 yp+45 Section", "Delay")
+	gui.AddEdit("ys w80")
+	gui.AddUpDown("range1-9999 Wrap", 100)
+
+	gui.AddCheckBox("xs Section", "Auto Style")
+	gui.AddCheckBox("xs Section", "Quick Order")
 }
 
 createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
