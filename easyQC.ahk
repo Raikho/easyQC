@@ -14,7 +14,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 2 : 1
+DEFAULT_TAB := devMode ? 1 : 1
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
@@ -27,137 +27,150 @@ data := {
 	style: { value: "....", displayName: "Style" },
 	roll: { value: "1", displayName: "Roll" },
 }
-populatePropNames(data, "main")
-populateFromIni(data, "main")
+setupForIni(data, "main")
+populateFromIni(data)
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
 	autoStyle : { value: 0, displayName: "Auto Style" },
 	quickOrder: { value: 0, displayName: "Quick Order" },
 }
-populatePropNames(settings, "settings")
-populateFromIni(settings, "settings")
+setupForIni(settings, "settings")
+populateFromIni(settings)
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
 ; =======================================================================================
 
-MyGui := Gui("+0x40000") ; resizable
-setupGuiAppearance(MyGui)
+myGui := Gui("+0x40000") ; resizable
+setupGuiAppearance()
 
-Tab := setupTabs(MyGui)
-setupMainTab(MyGui)
-setupSettingsTab(MyGui)
+Tab := setupTabs()
+setupMainTab()
+setupSettingsTab()
 
-statusBar := MyGui.AddStatusBar("xs", "Press ctrl+1 to output values")
+statusBar := myGui.AddStatusBar("xs", "Press ctrl+1 to output values")
 statusBar.SetFont("s10")
 
-MyGui.OnEvent("Close", (*) => ExitApp)
-MyGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
+myGui.OnEvent("Close", (*) => ExitApp)
+myGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
 	WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
 
-populatePropNames(obj, section) {
-	for key, val in obj.OwnProps() {
-		obj.%key%.propName := key
-		obj.%key%.section := section
+setupForIni(items, section) {
+	for (key, item in items.OwnProps()) {
+		item.iniName := key
+		item.iniSection := section
 	}
 }
 
-populateFromIni(obj, section) {
-	for key, val in obj.OwnProps() {
-		obj.%key%.value := IniRead("config.ini", section, key, val.value)
+populateFromIni(items) {
+	for (key, item in items.OwnProps()) {
+		item.value := IniRead("config.ini", item.iniSection, item.iniName, item.value)
 	}
 }
 
-setupGuiAppearance(gui) {
-	gui.Title := devMode ? "easyQC - dev mode" : "easyQC"
-	gui.SetFont("s" . FONT_SIZE, "Verdana")
-	gui.SetFont(, "Courier")
-	gui.SetFont(, "Courier New")
+saveItem(item) {
+	if (!item.HasProp("gui")) 
+		return MsgBox("Error: trying to save " . item.iniKey . "but it has not been setup to the gui")
+	IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 }
 
-setupTabs(gui) {
-	MyGui.SetFont("s" . TAB_FONT_SIZE)
-	Tab := gui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main", "Settings"])
-	MyGui.SetFont("s" . FONT_SIZE)
+clearItems(items) {
+	for key, item in items.OwnProps() {
+		item.gui.value := ""
+		saveItem(item)
+	}
+}
+
+setupGuiAppearance() {
+	myGui.Title := devMode ? "easyQC - dev mode" : "easyQC"
+	myGui.SetFont("s" . FONT_SIZE, "Verdana")
+	myGui.SetFont(, "Courier")
+	myGui.SetFont(, "Courier New")
+}
+
+setupTabs() {
+	myGui.SetFont("s" . TAB_FONT_SIZE)
+	Tab := myGui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main", "Settings"])
+	myGui.SetFont("s" . FONT_SIZE)
 	return Tab
 }
 
-setupMainTab(gui) {
-	gui.AddGroupBox("w330 h275 cGray Section", "data")
+setupMainTab() {
+	myGui.AddGroupBox("w330 h275 cGray Section", "data")
 
 	; INITIALS
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
 	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, background: PALE_BLUE }
-	createEdit(gui, data.initials, textOpt, editOpt)
+	createEdit(data.initials, textOpt, editOpt)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { ySection: 0, width: 170, background: PALE_BLUE }
-	createEdit(gui, data.customer, textOpt, editOpt)
+	createEdit(data.customer, textOpt, editOpt)
 
 	; Order
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
-	createEdit(gui, data.order, textOpt, editOpt)
+	createEdit(data.order, textOpt, editOpt)
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
-	createEdit(gui, data.upc, textOpt, editOpt)
+	createEdit(data.upc, textOpt, editOpt)
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { number: true, charLimit: 4, ySection: 0, width: 60, background: PALE_BLUE }
-	createEdit(gui, data.style, textOpt, editOpt)
+	createEdit(data.style, textOpt, editOpt)
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { charLimit: 12, ySection: 0, width: 70, background: NAVY_BLUE, center: True }
 	fontOpt := { bold: true, foreground: PALE_BLUE, fontName: "Arial"}
-	createEdit(gui, data.roll, textOpt, editOpt, fontOpt)
-	gui.AddUpDown("Range1-200 Wrap", data.roll.value)
+	createEdit(data.roll, textOpt, editOpt, fontOpt)
+	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
 	buttonOpt := { xPrev: 140, yPrev: 30, width: 50, height: 30}
 	fontOpt := { fontSize: 8 }
-	createButton(gui, buttonOpt, "clear", (*) => clearObjGui(data), fontOpt)
+	createButton(buttonOpt, "clear", (*) => clearItems(data), fontOpt)
 }
 
-setupSettingsTab(gui) {
+setupSettingsTab() {
 	Tab.UseTab(2)
 
-	gui.AddGroupBox("w330 h310 cGray Section", "general")
+	myGui.AddGroupBox("w330 h310 cGray Section", "general")
 
-	gui.AddText("xp+20 yp+45 Section", settings.delay.displayName)
-	gui.AddEdit("ys w80")
-	gui.AddUpDown("range1-9999 Wrap", settings.delay.value)
+	myGui.AddText("xp+20 yp+45 Section", settings.delay.displayName)
+	myGui.AddEdit("ys w80")
+	myGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
 	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value}
-	createCheckbox(gui, settings.autoStyle, opt)
+	createCheckbox(settings.autoStyle, opt)
 
 	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value}
-	createCheckbox(gui, settings.quickOrder, opt)
+	createCheckbox(settings.quickOrder, opt)
 }
 
-createEdit(gui, obj, textOptions, editboxOptions, fontOptions?) {
-	displayName := Format("{:8}", obj.displayName) . ":" ;; align right 8 characters
+createEdit(item, textOptions, editboxOptions, fontOptions?) {
+	displayName := Format("{:8}", item.displayName) . ":" ;; align right 8 characters
 
-	gui.AddText(formatOptions(textOptions), displayName)
-	obj.gui := gui.AddEdit(formatOptions(editboxOptions), obj.value)
+	myGui.AddText(formatOptions(textOptions), displayName)
+	item.gui := myGui.AddEdit(formatOptions(editboxOptions), item.value)
 
 	if (IsSet(fontOptions))
-		obj.gui.setFont(formatOptions(fontOptions),
+		item.gui.setFont(formatOptions(fontOptions),
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 
-	obj.gui.onEvent("Change", (*) => updateData(obj.propName))
+	item.gui.onEvent("Change", (*) => saveItem(item))
 }
 
-createButton(gui, buttonOptions, name, my_function, fontOptions?) {
-	btn := gui.AddButton(formatOptions(buttonOptions), name)
+createButton(buttonOptions, name, my_function, fontOptions?) {
+	btn := myGui.AddButton(formatOptions(buttonOptions), name)
 	btn.onEvent("Click", my_function)
 
 	if (IsSet(fontOptions))
@@ -165,24 +178,9 @@ createButton(gui, buttonOptions, name, my_function, fontOptions?) {
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 }
 
-createCheckbox(gui, obj, options) {
-	obj.gui := gui.AddCheckBox(formatOptions(options), obj.displayName)
-
-	obj.gui.onEvent("Click", (*) => toggleCheckbox(obj))
-}
-
-updateData(key) {
-	IniWrite(data.%key%.gui.value, "config.ini", "main", key)
-}
-
-toggleCheckbox(obj) {
-	IniWrite(obj.gui.value, "config.ini", obj.section, obj.propName)
-}
-
-clearObjGui(obj) {
-	for key, val in obj.OwnProps() {
-		obj.%key%.gui.value := ""
-	}
+createCheckbox(item, options) {
+	item.gui := myGui.AddCheckBox(formatOptions(options), item.displayName)
+	item.gui.onEvent("Click", (*) => saveItem(item))
 }
 
 resetData(key) {
