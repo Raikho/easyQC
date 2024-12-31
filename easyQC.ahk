@@ -22,13 +22,15 @@ NAVY_BLUE := "4d6d9a"
 data := {
 	initials: { value: "..", displayName: "Initials" },
 	customer: { value: "<customer>", displayName: "Customer" },
+	preOrder: { value: "20010", displayName: "Order" },
+	postOrder: { value: "....", displayName: "" },
 	order: { value: "20010....", displayName: "Order" },
 	upc: { value: "............", displayName: "UPC" },
 	style: { value: "....", displayName: "Style" },
 	roll: { value: "1", displayName: "Roll" },
 }
 setupForIni(data, "main")
-populateFromIni(data)
+populateFromIni(data) 
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
@@ -66,21 +68,37 @@ setupForIni(items, section) {
 		item.iniSection := section
 	}
 }
-
 populateFromIni(items) {
 	for (key, item in items.OwnProps()) {
-		item.value := IniRead("config.ini", item.iniSection, item.iniName, item.value)
+ 		item.value := IniRead("config.ini", item.iniSection, item.iniName, item.value)
 	}
 }
-
 saveItem(item) {
-	if (!item.HasProp("gui")) 
-		return MsgBox("Error: trying to save " . item.iniKey . "but it has not been setup to the gui")
+	switch item.iniName {
+		case "order":
+		data.postOrder.gui.value := SubStr(item.gui.value, -4)
+		writeItem(data.postOrder)
+
+		case "postOrder" :
+		data.order.gui.value := "20010" . item.gui.value
+		writeItem(data.order)
+
+		case "quickOrder" :
+		updateQuickOrderVisibility()
+	}
+
+	writeItem(item)
+}
+writeItem(item) {
 	IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 }
-
+readItem(item) {
+	return IniRead("config.ini", item.iniSection, item.iniName, item.value)
+}
 clearItems(items) {
 	for key, item in items.OwnProps() {
+		if (!item.gui.Enabled)
+			continue
 		item.gui.value := ""
 		saveItem(item)
 	}
@@ -113,10 +131,22 @@ setupMainTab() {
 	editOpt := { ySection: 0, width: 170, background: PALE_BLUE }
 	createEdit(data.customer, textOpt, editOpt)
 
-	; Order
+	; ============================ ORDER ============================
+	; ===============================================================
+
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
 	createEdit(data.order, textOpt, editOpt)
+
+	editOpt := { number: true, charLimit: 5, xPrev: 0, ySection: 0, width: 82 }
+	createEditboxOnly(data.preOrder, editOpt)
+	editOpt := { number: true, charLimit: 4, xPrev: 100, ySection: 0, width: 70, background: PALE_BLUE }
+	createEditboxOnly(data.postOrder, editOpt)
+
+	updateQuickOrderVisibility()
+
+	; ===============================================================
+	; ===============================================================
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true }
@@ -137,7 +167,7 @@ setupMainTab() {
 
 	buttonOpt := { xPrev: 140, yPrev: 30, width: 50, height: 30}
 	fontOpt := { fontSize: 8 }
-	createButton(buttonOpt, "clear", (*) => clearItems(data), fontOpt)
+	CREATEBUTTON(BUTTONOPT, "CLEAR", (*) => CLEARITEMS(data), fontOpt)
 
 	setupPressEnterForNextItem()
 }
@@ -147,8 +177,9 @@ setupSettingsTab() {
 
 	myGui.AddGroupBox("w330 h310 cGray Section", "general")
 
-	myGui.AddText("xp+20 yp+45 Section", settings.delay.displayName)
-	myGui.AddEdit("ys w80")
+	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
+	editOpt := {ySection: 0, width: 80}
+	createEdit(settings.delay, textOpt, editOpt)
 	myGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
 	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value}
@@ -164,19 +195,24 @@ setupPressEnterForNextItem() {
 	defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 }
 
-createEdit(item, textOptions, editboxOptions, fontOptions?) {
-	displayName := Format("{:8}", item.displayName) . ":" ;; align right 8 characters
-
-	myGui.AddText(formatOptions(textOptions), displayName)
+createEditboxOnly(item, editboxOptions) {
 	item.gui := myGui.AddEdit(formatOptions(editboxOptions), item.value)
-
-	if (IsSet(fontOptions))
-		item.gui.setFont(formatOptions(fontOptions),
-	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 
 	item.gui.onEvent("Change", (*) => saveItem(item))
 }
 
+createEdit(item, textOptions, editboxOptions, fontOptions?) {
+	displayName := Format("{:8}", item.displayName) . ":" ;; align right 8 characters
+
+	if (!(textOptions.hasProp("hide") && textOptions.hide))
+		item.textGui := myGui.AddText(formatOptions(textOptions), displayName)
+	item.gui := myGui.AddEdit(formatOptions(editboxOptions), item.value)
+
+	if (IsSet(fontOptions))
+		item.gui.setFont(formatOptions(fontOptions), fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
+
+	item.gui.onEvent("Change", (*) => saveItem(item))
+}
 createButton(buttonOptions, name, my_function, fontOptions?) {
 	btn := myGui.AddButton(formatOptions(buttonOptions), name)
 	btn.Opt("+Default")
@@ -186,13 +222,19 @@ createButton(buttonOptions, name, my_function, fontOptions?) {
 		btn.setFont(formatOptions(fontOptions),
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 }
-
 createCheckbox(item, options) {
 	item.gui := myGui.AddCheckBox(formatOptions(options), item.displayName)
 	item.gui.onEvent("Click", (*) => saveItem(item))
 }
 
-resetData(key) {
+updateQuickOrderVisibility() {
+	if (settings.quickOrder.HasProp("gui"))
+		quickOrder := settings.quickOrder.gui.value
+	else
+		quickOrder := readItem(settings.quickOrder)
+	data.order.gui.Visible := !quickOrder
+	data.preOrder.gui.Visible := quickOrder
+	data.postOrder.gui.Visible := quickOrder 
 }
 
 formatOptions(obj) {
@@ -254,7 +296,6 @@ onPrint(*) {
 	inputDataAndSleep("N")
 	inputDataAndSleep("Y")
 }
-
 inputDataAndSleep(obj) {
 	if classActive("XLMAIN", "Chrome_WidgetWin_1") {
 		return
