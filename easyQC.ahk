@@ -1,4 +1,6 @@
-﻿#Requires AutoHotkey v2.0
+﻿; TOOD: add shortage buttons, s-, s+
+
+#Requires AutoHotkey v2.0
 #SingleInstance force
 
 ; =======================================================================================
@@ -14,7 +16,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 2 : 1
+DEFAULT_TAB := devMode ? 1 : 1
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
@@ -90,12 +92,16 @@ saveItem(item) {
 		case "orderPrefix":
 		data.preOrder.gui.value := item.gui.value
 		writeItem(data.preOrder)
+
+		case "autoStyle":
+		updateStyleLock()
 	}
 
 	writeItem(item)
 }
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
+hasGui(item) => item.HasProp("gui")
 
 clearItems(items) {
 	for key, item in items.OwnProps() {
@@ -160,6 +166,7 @@ setupMainTab() {
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { number: true, charLimit: 4, ySection: 0, width: 60, background: PALE_BLUE }
 	createEdit(data.style, textOpt, editOpt)
+	updateStyleLock()
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
@@ -173,6 +180,16 @@ setupMainTab() {
 	CREATEBUTTON(BUTTONOPT, "CLEAR", (*) => CLEARITEMS(data), fontOpt)
 
 	setupPressEnterForNextItem()
+}
+
+updateStyleLock() {
+	if (hasGui(settings.autoStyle))
+		isAutoStyle := settings.autoStyle.gui.value
+	else
+		isAutoStyle := readItem(settings.autoStyle)
+
+	data.style.gui.Enabled := !isAutoStyle
+	data.style.gui.value := isAutoStyle ? SubStr(data.upc.gui.value, -4) : data.style.gui.value
 }
 
 setupSettingsTab() {
@@ -236,18 +253,18 @@ createCheckbox(item, options) {
 }
 
 updateQuickOrderVisibility() {
-	if (settings.quickOrder.HasProp("gui"))
-		quickOrder := settings.quickOrder.gui.value
+	if (hasGui(settings.quickOrder))
+		isQuickOrder := settings.quickOrder.gui.value
 	else
-		quickOrder := readItem(settings.quickOrder)
+		isQuickOrder := readItem(settings.quickOrder)
 
-	data.order.gui.Visible := !quickOrder
-	data.preOrder.gui.Visible := quickOrder
-	data.postOrder.gui.Visible := quickOrder
+	data.order.gui.Visible := !isQuickOrder
+	data.preOrder.gui.Visible := isQuickOrder
+	data.postOrder.gui.Visible := isQuickOrder
 
 	if(settings.orderPrefix.HasProp("gui")) {
-		settings.orderPrefix.textGui.Enabled := quickOrder
-		settings.orderPrefix.gui.Enabled := quickOrder
+		settings.orderPrefix.textGui.Enabled := isQuickOrder
+		settings.orderPrefix.gui.Enabled := isQuickOrder
 	}
 }
 
