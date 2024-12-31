@@ -14,7 +14,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 1 : 1
+DEFAULT_TAB := devMode ? 2 : 1
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
@@ -36,6 +36,7 @@ settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
 	autoStyle : { value: 0, displayName: "Auto Style" },
 	quickOrder: { value: 0, displayName: "Quick Order" },
+	orderPrefix: { value: "20010", displayName: "Prefix" },
 }
 setupForIni(settings, "settings")
 populateFromIni(settings)
@@ -70,7 +71,7 @@ setupForIni(items, section) {
 }
 populateFromIni(items) {
 	for (key, item in items.OwnProps()) {
- 		item.value := IniRead("config.ini", item.iniSection, item.iniName, item.value)
+		item.value := readItem(item)
 	}
 }
 saveItem(item) {
@@ -79,22 +80,23 @@ saveItem(item) {
 		data.postOrder.gui.value := SubStr(item.gui.value, -4)
 		writeItem(data.postOrder)
 
-		case "postOrder" :
+		case "postOrder":
 		data.order.gui.value := "20010" . item.gui.value
 		writeItem(data.order)
 
-		case "quickOrder" :
+		case "quickOrder":
 		updateQuickOrderVisibility()
+
+		case "orderPrefix":
+		data.preOrder.gui.value := item.gui.value
+		writeItem(data.preOrder)
 	}
 
 	writeItem(item)
 }
-writeItem(item) {
-	IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
-}
-readItem(item) {
-	return IniRead("config.ini", item.iniSection, item.iniName, item.value)
-}
+writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
+readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
+
 clearItems(items) {
 	for key, item in items.OwnProps() {
 		if (!item.gui.Enabled)
@@ -143,6 +145,7 @@ setupMainTab() {
 	editOpt := { number: true, charLimit: 4, xPrev: 100, ySection: 0, width: 70, background: PALE_BLUE }
 	createEditboxOnly(data.postOrder, editOpt)
 
+	data.preOrder.gui.Enabled := false
 	updateQuickOrderVisibility()
 
 	; ===============================================================
@@ -178,15 +181,20 @@ setupSettingsTab() {
 	myGui.AddGroupBox("w330 h310 cGray Section", "general")
 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
-	editOpt := {ySection: 0, width: 80}
+	editOpt := { ySection: 0, width: 80 }
 	createEdit(settings.delay, textOpt, editOpt)
 	myGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
-	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value}
+	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value }
 	createCheckbox(settings.autoStyle, opt)
 
-	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value}
+	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value }
 	createCheckbox(settings.quickOrder, opt)
+
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { ySection: 0, width: 80 }
+	createEdit(settings.orderPrefix, textOpt, editOpt)
+	updateQuickOrderVisibility()
 }
 
 setupPressEnterForNextItem() {
@@ -232,9 +240,15 @@ updateQuickOrderVisibility() {
 		quickOrder := settings.quickOrder.gui.value
 	else
 		quickOrder := readItem(settings.quickOrder)
+
 	data.order.gui.Visible := !quickOrder
 	data.preOrder.gui.Visible := quickOrder
-	data.postOrder.gui.Visible := quickOrder 
+	data.postOrder.gui.Visible := quickOrder
+
+	if(settings.orderPrefix.HasProp("gui")) {
+		settings.orderPrefix.textGui.Enabled := quickOrder
+		settings.orderPrefix.gui.Enabled := quickOrder
+	}
 }
 
 formatOptions(obj) {
@@ -286,9 +300,16 @@ formatOptions(obj) {
 ^1::onPrint()
 
 onPrint(*) {
+	if (data.order.gui.Visible && !data.preOrder.gui.Visible && !data.postOrder.gui.Visible)
+		order := data.order.gui.value
+	else if (!data.order.gui.Visible && data.preOrder.gui.Visible && data.postOrder.gui.Visible)
+		order := data.preOrder.gui.value . data.postOrder.gui.value
+	else
+		return MsgBox("error parsing order number, something messed up")
+
 	inputDataAndSleep(data.initials.gui.value)
 	inputDataAndSleep(data.customer.gui.value)
-	inputDataAndSleep(data.order.gui.value)
+	inputDataAndSleep(order)
 	inputDataAndSleep(data.upc.gui.value)
 	inputDataAndSleep(data.style.gui.value)
 	inputDataAndSleep(data.roll.gui.value)
@@ -296,6 +317,7 @@ onPrint(*) {
 	inputDataAndSleep("N")
 	inputDataAndSleep("Y")
 }
+
 inputDataAndSleep(obj) {
 	if classActive("XLMAIN", "Chrome_WidgetWin_1") {
 		return
