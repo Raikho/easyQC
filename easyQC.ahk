@@ -43,6 +43,9 @@ settings := {
 setupForIni(settings, "settings")
 populateFromIni(settings)
 
+samplePlusButton := { }
+sampleMinusButton := { }
+
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
 ; =======================================================================================
@@ -82,6 +85,9 @@ saveItem(item) {
 		data.postOrder.gui.value := SubStr(item.gui.value, -4)
 		writeItem(data.postOrder)
 
+		case "upc":
+		updateStyleLock()
+
 		case "postOrder":
 		data.order.gui.value := "20010" . item.gui.value
 		writeItem(data.order)
@@ -95,6 +101,9 @@ saveItem(item) {
 
 		case "autoStyle":
 		updateStyleLock()
+
+		case "roll":
+		updateSampleButtons
 	}
 
 	writeItem(item)
@@ -176,15 +185,17 @@ setupMainTab() {
 	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
 
-	buttonOpt := { xSection: 200, ySection: 0, width: 20, height: 20}
+	; SAMPLE BUTTONS
+	buttonOpt := { xSection: 200, ySection: -5, width: 20, height: 20} ; 286 aligns right edge
 	fontOpt := { fontSize: 8 }
-	createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
-
+	sampleMinusButton.gui := createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
 	buttonOpt := { xPrev: 0, yPrev: 20, width: 20, height: 20}
 	fontOpt := { fontSize: 8 }
-	createButton(buttonOpt, "s+", (*) => addSample("plus"), fontOpt)
+	samplePlusButton.gui := createButton(buttonOpt, "s+", (*) => addSample("plus"), fontOpt)
+	updateSampleButtons()
 
-	buttonOpt := { xSection: 260, yPrev: 30, width: 50, height: 30}
+	; CLEAR BUTTON
+	buttonOpt := { xSection: 256, ySection: 42, width: 50, height: 20}
 	fontOpt := { fontSize: 8 }
 	createButton(buttonOpt, "CLEAR", (*) => clearItems(data), fontOpt)
 
@@ -256,6 +267,8 @@ createButton(buttonOptions, name, my_function, fontOptions?) {
 	if (IsSet(fontOptions))
 		btn.setFont(formatOptions(fontOptions),
 	fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
+
+	return btn
 }
 createCheckbox(item, options) {
 	item.gui := myGui.AddCheckBox(formatOptions(options), item.displayName)
@@ -296,18 +309,34 @@ addSample(type) {
 		rollNum := Round(rollNum - 0.1, 1)
 	}
 	data.roll.gui.value := rollNum
+	updateSampleButtons()
+}
+
+updateSampleButtons() {
+	rollString := data.roll.gui.value
+	if(!isNumber(rollString) || Number(rollString) < 0) {
+		samplePlusButton.gui.Enabled := 0
+		sampleMinusButton.gui.Enabled := 0
+		return
+	}
+	rollNum := Round(Number(rollString), 1)
+	modulus := Round(Mod(rollNum, 1), 1)
+
+
+	samplePlusButton.gui.Enabled := (modulus < 0.9)
+	sampleMinusButton.gui.Enabled := (modulus >= 0.2)
 }
 
 formatOptions(obj) {
-	str := ""
+	str := "" 
 	if (obj.HasProp("xPrev"))
 		str .= "xp" . "+" . obj.xPrev . " "
 	if (obj.HasProp("yPrev"))
 		str .= "yp" . "+" . obj.yPrev . " "
 	if (obj.HasProp("xSection"))
 		str .= "xs" . "+" . obj.xSection . " "
-	if (obj.HasProp("ySection"))
-		str .= "ys" . "+" . obj.ySection . " "
+	if (obj.HasProp("ySection")) 
+		str .= "ys" . ((obj.ySection >= 0) ? "+" : "") . obj.ySection . " "
 
 	if (obj.HasProp("width"))
 		str .= "w" . obj.width . " "
