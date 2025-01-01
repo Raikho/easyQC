@@ -108,7 +108,7 @@ clearItems(items) {
 		if (!item.gui.Enabled)
 			continue
 		item.gui.value := ""
-		saveItem(item)
+		saveItem(item) ; TODO: find out why it's not saving roll clear
 	}
 }
 
@@ -175,9 +175,18 @@ setupMainTab() {
 	createEdit(data.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
-	buttonOpt := { xPrev: 140, yPrev: 30, width: 50, height: 30}
+
+	buttonOpt := { xSection: 200, ySection: 0, width: 20, height: 20}
 	fontOpt := { fontSize: 8 }
-	CREATEBUTTON(BUTTONOPT, "CLEAR", (*) => CLEARITEMS(data), fontOpt)
+	createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
+
+	buttonOpt := { xPrev: 0, yPrev: 20, width: 20, height: 20}
+	fontOpt := { fontSize: 8 }
+	createButton(buttonOpt, "s+", (*) => addSample("plus"), fontOpt)
+
+	buttonOpt := { xSection: 260, yPrev: 30, width: 50, height: 30}
+	fontOpt := { fontSize: 8 }
+	createButton(buttonOpt, "CLEAR", (*) => clearItems(data), fontOpt)
 
 	setupPressEnterForNextItem()
 }
@@ -190,6 +199,7 @@ updateStyleLock() {
 
 	data.style.gui.Enabled := !isAutoStyle
 	data.style.gui.value := isAutoStyle ? SubStr(data.upc.gui.value, -4) : data.style.gui.value
+	data.style.textGui.setFont(isAutoStyle ? "cSilver" : "cBlack")
 }
 
 setupSettingsTab() {
@@ -266,6 +276,26 @@ updateQuickOrderVisibility() {
 		settings.orderPrefix.textGui.Enabled := isQuickOrder
 		settings.orderPrefix.gui.Enabled := isQuickOrder
 	}
+}
+
+addSample(type) {
+	rollString := data.roll.gui.value
+	if(!isNumber(rollString) || Number(rollString) < 0)
+		return MsgBox("Error: current roll value is not a number or is negative, cannot change to add sample")
+	rollNum := Round(Number(rollString), 1)
+	modulus := Round(Mod(rollNum, 1), 1)
+
+	switch {
+		case (type == "plus" && modulus <= 0.1):
+		rollNum := Round(rollNum + 0.2, 1)
+		case (type == "plus" && modulus < 0.9):
+		rollNum := Round(rollNum + 0.1, 1)
+		case (type == "minus" && modulus <= 0.2):
+		rollNum := Round(rollNum, 0)
+		case (type == "minus" && modulus <= 0.9):
+		rollNum := Round(rollNum - 0.1, 1)
+	}
+	data.roll.gui.value := rollNum
 }
 
 formatOptions(obj) {
