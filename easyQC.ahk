@@ -51,6 +51,8 @@ sampleData := {
 	style: { value: "....", displayName: "Style" },
 	roll: { value: "1", displayName: "Roll" },
 }
+setupForIni(sampleData, "samples")
+populateFromIni(sampleData)
 
 samplePlusButton := { }
 sampleMinusButton := { }
@@ -60,6 +62,8 @@ sampleMinusButton := { }
 ; =======================================================================================
 
 myGui := Gui("+0x40000") ; resizable
+;myGui.MarginX := 5
+;myGui.Marginy := 5
 setupGuiAppearance()
 
 statusBar := myGui.AddStatusBar("xs", "")
@@ -152,7 +156,13 @@ setupTabs() {
 
  setupMainTab(tabNum) {
 	Tab.useTab(tabNum)
-	myGui.AddGroupBox("w330 h275 cGray Section", "data")
+	gb := myGui.AddGroupBox("w330 h275 cGray Section", "data")
+
+	out := "props: "
+	for key, val in gb.OwnProps() {
+		out .= val . "|"
+	}
+	;msgBox(out) DEBUG: delete this, no props shown
 
 	; INITIALS
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
@@ -200,7 +210,6 @@ setupTabs() {
 	createEdit(data.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
-
 	; SAMPLE BUTTONS
 	buttonOpt := { xSection: 200, ySection: -5, width: 20, height: 20} ; 286 aligns right edge
 	fontOpt := { fontSize: 8 }
@@ -211,7 +220,7 @@ setupTabs() {
 	updateSampleButtons()
 
 	; CLEAR BUTTON
-	buttonOpt := { xSection: 256, ySection: 42, width: 50, height: 20}
+	buttonOpt := { xMargin: 295, ySection: 21, width: 50, height: 20}
 	fontOpt := { fontSize: 8 }
 	createButton(buttonOpt, "CLEAR", (*) => clearItems(data), fontOpt)
 
@@ -231,7 +240,7 @@ updateStyleLock() {
 
 setupSamplesTab(tabNum) {
 	Tab.UseTab(tabNum)
-	myGui.AddGroupBox("w330 h300 cGreen Section", "sample data")
+	myGui.AddGroupBox("w330 h240 cGreen Section", "sample data")
 
 	; INITIALS
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
@@ -246,7 +255,6 @@ setupSamplesTab(tabNum) {
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { ySection: 0, width: 185 }
 	createEdit(sampleData.order, textOpt, editOpt)
-
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
@@ -265,7 +273,7 @@ setupLabelTab(tabNum) {
 
 	myGui.AddGroupBox("w330 h100 cGray Section", "actions")
 
-	myGui.AddGroupBox("w330 h100 cGray Section", "label data")
+	myGui.AddGroupBox("w330 h100 cBlue Section", "label data")
 }
 
 setupSettingsTab(tabNum) {
@@ -392,6 +400,10 @@ formatOptions(obj) {
 		str .= "xs" . "+" . obj.xSection . " "
 	if (obj.HasProp("ySection")) 
 		str .= "ys" . ((obj.ySection >= 0) ? "+" : "") . obj.ySection . " "
+	if (obj.HasProp("xMargin"))
+		str .= "xm" . "+" . obj.xMargin . " "
+	if (obj.HasProp("yMargin")) 
+		str .= "ym" . obj.yMargin . " "
 
 	if (obj.HasProp("width"))
 		str .= "w" . obj.width . " "
@@ -429,6 +441,7 @@ formatOptions(obj) {
 
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
 ^1::onPrint()
+^2::onSamplePrint()
 
 onPrint(*) {
 	if (Tab.value != 1)
@@ -447,6 +460,21 @@ onPrint(*) {
 	inputDataAndSleep(data.upc.gui.value)
 	inputDataAndSleep(data.style.gui.value)
 	inputDataAndSleep(data.roll.gui.value)
+	inputDataAndSleep("Y")
+	inputDataAndSleep("N")
+	inputDataAndSleep("Y")
+}
+
+onSamplePrint(*) {
+	if (Tab.value != 2)
+		return
+
+inputDataAndSleep(sampleData.initials.gui.value)
+	inputDataAndSleep(sampleData.customer.gui.value)
+	inputDataAndSleep(sampleData.order.gui.value)
+	inputDataAndSleep("") ; No upc
+	inputDataAndSleep(sampleData.style.gui.value)
+	inputDataAndSleep(sampleData.roll.gui.value)
 	inputDataAndSleep("Y")
 	inputDataAndSleep("N")
 	inputDataAndSleep("Y")
