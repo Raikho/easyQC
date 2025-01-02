@@ -8,7 +8,7 @@
 devMode := IniRead("config.ini", "debug", "devMode", 0)
 
 ; constants
-WINDOW_WIDTH := 400
+WINDOW_WIDTH := 371
 WINDOW_HEIGHT :=  400
 WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
@@ -20,7 +20,6 @@ tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output v
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
-
 
 data := {
 	initials: { value: "..", displayName: "Initials" },
@@ -69,13 +68,24 @@ populateFromIni(sampleData)
 samplePlusButton := { }
 sampleMinusButton := { }
 
+paths := {
+	rfid_dir: { value: "C:\RFID\PROG\" },
+	rfid_file: { value: "RFIDQAR420.exe" },
+	csv_dir: { value: "C:\RFID\PACKLABEL\" },
+	csv_file: { value: "RFID-PACKLABEL.csv" },
+}
+setupForIni(paths, "paths")
+populateFromIni(paths)
+
+csv := { }
+
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
 ; =======================================================================================
 
 myGui := Gui("+0x40000") ; resizable
-;myGui.MarginX := 5
-;myGui.Marginy := 5
+myGui.MarginX := 10
+myGui.Marginy := 10
 setupGuiAppearance()
 
 statusBar := myGui.AddStatusBar("xs", "")
@@ -166,15 +176,9 @@ setupTabs() {
 	return Tab
 }
 
- setupMainTab(tabNum) {
+setupMainTab(tabNum) {
 	Tab.useTab(tabNum)
-	gb := myGui.AddGroupBox("w330 h275 cGray Section", "data")
-
-	out := "props: "
-	for key, val in gb.OwnProps() {
-		out .= val . "|"
-	}
-	;msgBox(out) DEBUG: delete this, no props shown
+	myGui.AddGroupBox("w330 h275 cGray Section", "data")
 
 	; INITIALS
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
@@ -232,7 +236,7 @@ setupTabs() {
 	updateSampleButtons()
 
 	; CLEAR BUTTON
-	buttonOpt := { xMargin: 295, ySection: 21, width: 50, height: 20}
+	buttonOpt := { xMargin: 288, yMargin: 275 + TAB_FONT_SIZE, width: 50, height: 20}
 	fontOpt := { fontSize: 8 }
 	createButton(buttonOpt, "CLEAR", (*) => clearItems(data), fontOpt)
 
@@ -282,50 +286,57 @@ setupSamplesTab(tabNum) {
 
 setupLabelTab(tabNum) {
 	Tab.UseTab(tabNum)
-	myGui.MarginY := 7
+	myGui.MarginY := 6
 	myGui.SetFont("s12")
-	boxHeight := 23
+	boxHeight := 24
 
-	myGui.AddGroupBox("w330 h50 cGray Section", "actions")
+	; ==== ACTIONS ==== 
+	myGui.AddGroupBox("w330 h65 cGray Section", "actions")
+	readButton := MyGui.AddButton("xp+10 yp+20 h30", "read")
+	readButton.OnEvent("Click", onRead)
+	writeButton := MyGui.AddButton("x+15 yp h30", "write")
+	readButton.OnEvent("Click", onWrite)
+	myGui.SetFont("s8")
+	pathText := MyGui.AddText("xS+22 yS+55 cGray", "Path: " . ".\test\RFID-PACKLABEL.csv") ; TODO
+	myGui.SetFont("s12")
 
-	myGui.AddGroupBox("w330 h265 cBlue Section", "label data")
-
-	; Order
-	textOpt := { xPrev: 10, yPrev: 30, newSection: true, height: boxHeight }
-	editOpt := { ySection: 0, width: 160, height: 23 }
+	; ==== LABEL DATA ====
+	myGui.AddGroupBox("xS w330 h245 cBlue Section", "label data")
+	; ORDER
+	textOpt := { xSection: 10, ySection: 25, newSection: true, height: boxHeight }
+	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.order, textOpt, editOpt)
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { ySection: 0, width: 160 }
+	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.upc, textOpt, editOpt)
 
 	; INITIALS
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { uppsercase: true, charLimit: 3, ySection: 0, width: 50, }
+	editOpt := { uppsercase: true, charLimit: 3, ySection: 0, width: 50, height: boxHeight}
 	createEdit(labelData.initials, textOpt, editOpt)
 
 	; DATE
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { charLimit: 10, ySection: 0, width: 130, }
+	editOpt := { charLimit: 10, ySection: 0, width: 130, height: boxHeight}
 	createEdit(labelData.date, textOpt, editOpt)
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { charLimit: 12, ySection: 0, width: 70 }
+	editOpt := { charLimit: 12, ySection: 0, width: 70, height: boxHeight }
 	createEdit(labelData.roll, textOpt, editOpt)
 	myGui.AddUpDown("Range1-200 Wrap", labelData.roll.value)
 
 	; QTY
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { number: true, charLimit: 2, ySection: 0, width: 40, }
+	editOpt := { number: true, charLimit: 2, ySection: 0, width: 40, height: boxHeight }
 	createEdit(labelData.quantity, textOpt, editOpt)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { ySection: 0, width: 130, }
+	editOpt := { ySection: 0, width: 130, height: boxHeight }
 	createEdit(labelData.customer, textOpt, editOpt)
-
 
 	myGui.SetFont("s14")
 	myGui.MarginY := 11
@@ -334,7 +345,7 @@ setupLabelTab(tabNum) {
 setupSettingsTab(tabNum) {
 	Tab.UseTab(tabNum)
 
-	myGui.AddGroupBox("w330 h310 cGray Section", "general")
+	myGui.AddGroupBox("w330 h300 cGray Section", "general")
 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
 	editOpt := { ySection: 0, width: 80 }
@@ -354,7 +365,7 @@ setupSettingsTab(tabNum) {
 }
 
 setupPressEnterForNextItem() {
-	defaultButton := MyGui.AddButton("ys Default", "button")
+	defaultButton := MyGui.AddButton("x0 y0 Default", "button")
 	defaultButton.Visible := false
 	defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
 }
@@ -444,6 +455,38 @@ updateSampleButtons() {
 	samplePlusButton.gui.Enabled := (modulus < 0.9)
 	sampleMinusButton.gui.Enabled := (modulus >= 0.2)
 }
+
+onRead(*) {
+
+}
+onWrite(*) {
+
+}
+readCsv(path) {
+	csv := {}
+	csvPath := paths.csv_dir.value . paths.csv_file.value
+    try {
+		Loop read, csvPath {
+			line := A_Index
+
+			Loop parse, A_LoopReadLine, "CSV" {
+				i := A_Index
+				
+				if (line == 1)
+					csv.%A_LoopField% := { index: i, value: "" }
+                else if (line == 2)
+					For key, val in csv.OwnProps()
+                        if (csv.%key%.index == i)
+                            csv.%key%.value := A_LoopField
+            }
+        }
+    }
+    catch Error as e {
+        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . paths.csv.full . "`nAlso check that the csv file is in the correct format.")
+        return
+    }
+}
+
 
 formatOptions(obj) {
 	str := "" 
@@ -555,4 +598,3 @@ classActive(params*) {
 		return true
 	return false
 }
-
