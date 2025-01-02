@@ -1,6 +1,4 @@
-﻿; TOOD: add shortage buttons, s-, s+
-
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 #SingleInstance force
 
 ; =======================================================================================
@@ -16,10 +14,13 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 1 : 1
+DEFAULT_TAB := devMode ? 2 : 1
+tabTitles := [ "Main", "Samples", "Label", "Settings"]
+tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; colors
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
+
 
 data := {
 	initials: { value: "..", displayName: "Initials" },
@@ -43,6 +44,14 @@ settings := {
 setupForIni(settings, "settings")
 populateFromIni(settings)
 
+sampleData := {
+	initials: { value: "..", displayName: "Initials" },
+	customer: { value: "<customer>", displayName: "Customer" },
+	order: { value: "<order>", displayName: "Order" },
+	style: { value: "....", displayName: "Style" },
+	roll: { value: "1", displayName: "Roll" },
+}
+
 samplePlusButton := { }
 sampleMinusButton := { }
 
@@ -53,12 +62,14 @@ sampleMinusButton := { }
 myGui := Gui("+0x40000") ; resizable
 setupGuiAppearance()
 
-Tab := setupTabs()
-setupMainTab()
-setupSettingsTab()
-
-statusBar := myGui.AddStatusBar("xs", "Press ctrl+1 to output values")
+statusBar := myGui.AddStatusBar("xs", "")
 statusBar.SetFont("s10")
+
+Tab := setupTabs()
+setupMainTab(1)
+setupSamplesTab(2)
+setupLabelTab(3)
+setupSettingsTab(4)
 
 myGui.OnEvent("Close", (*) => ExitApp)
 myGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
@@ -111,6 +122,7 @@ saveItem(item) {
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
 hasGui(item) => item.HasProp("gui")
+updateStatusBar(tabObj) => statusBar.SetText(tabStatusMessages[tabObj.Value])
 
 clearItems(items) {
 	for key, item in items.OwnProps() {
@@ -130,12 +142,16 @@ setupGuiAppearance() {
 
 setupTabs() {
 	myGui.SetFont("s" . TAB_FONT_SIZE)
-	Tab := myGui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main", "Settings"])
+	Tab := myGui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main", "Samples", "Label", "Settings"])
 	myGui.SetFont("s" . FONT_SIZE)
+	updateStatusBar(Tab)
+
+	Tab.OnEvent("Change", (*) => updateStatusBar(Tab))
 	return Tab
 }
 
-setupMainTab() {
+ setupMainTab(tabNum) {
+	Tab.useTab(tabNum)
 	myGui.AddGroupBox("w330 h275 cGray Section", "data")
 
 	; INITIALS
@@ -213,8 +229,47 @@ updateStyleLock() {
 	data.style.textGui.setFont(isAutoStyle ? "cSilver" : "cBlack")
 }
 
-setupSettingsTab() {
-	Tab.UseTab(2)
+setupSamplesTab(tabNum) {
+	Tab.UseTab(tabNum)
+	myGui.AddGroupBox("w330 h300 cGreen Section", "sample data")
+
+	; INITIALS
+	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
+	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, }
+	createEdit(sampleData.initials, textOpt, editOpt)
+
+	; CUSTOMER
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { ySection: 0, width: 185 }
+	createEdit(sampleData.customer, textOpt, editOpt)
+
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { ySection: 0, width: 185 }
+	createEdit(sampleData.order, textOpt, editOpt)
+
+
+	; STYLE
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { number: true, charLimit: 4, ySection: 0, width: 185 }
+	createEdit(sampleData.style, textOpt, editOpt)
+
+	; ROLL
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { charLimit: 12, ySection: 0, width: 70 }
+	createEdit(sampleData.roll, textOpt, editOpt)
+	myGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
+}
+
+setupLabelTab(tabNum) {
+	Tab.UseTab(tabNum)
+
+	myGui.AddGroupBox("w330 h100 cGray Section", "actions")
+
+	myGui.AddGroupBox("w330 h100 cGray Section", "label data")
+}
+
+setupSettingsTab(tabNum) {
+	Tab.UseTab(tabNum)
 
 	myGui.AddGroupBox("w330 h310 cGray Section", "general")
 
@@ -376,6 +431,9 @@ formatOptions(obj) {
 ^1::onPrint()
 
 onPrint(*) {
+	if (Tab.value != 1)
+		return
+
 	if (data.order.gui.Visible && !data.preOrder.gui.Visible && !data.postOrder.gui.Visible)
 		order := data.order.gui.value
 	else if (!data.order.gui.Visible && data.preOrder.gui.Visible && data.postOrder.gui.Visible)
@@ -399,7 +457,7 @@ inputDataAndSleep(obj) {
 		return
 	}
 	SendInput(obj . "{enter}")
-	Sleep(150)
+	Sleep(settings.delay.gui.value)
 }
 
 exeActive(params*) {
