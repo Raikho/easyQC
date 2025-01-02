@@ -63,7 +63,7 @@ labelData := {
  	customer: { value: "<customer>", displayName: "Customer", index: 7 },
 }
 setupForIni(labelData, "label")
-populateFromIni(sampleData)
+populateFromIni(labelData)
 
 samplePlusButton := { }
 sampleMinusButton := { }
@@ -457,34 +457,40 @@ updateSampleButtons() {
 }
 
 onRead(*) {
+	readCsv()
 
+	for key1, csvItem in csv.OwnProps()
+	for key2, labelItem  in labelData.OwnProps()
+	if (labelItem.index == csvItem.index) {
+		labelItem.gui.value := csvItem.value
+		saveItem(labelItem)
+		continue
+	}
 }
 onWrite(*) {
 
 }
-readCsv(path) {
-	csv := {}
-	csvPath := paths.csv_dir.value . paths.csv_file.value
-    try {
+readCsv(*) {
+	csvPath := (devMode ? ".\test\" : paths.csv_dir.value) . paths.csv_file.value
+	try {
 		Loop read, csvPath {
 			line := A_Index
-
 			Loop parse, A_LoopReadLine, "CSV" {
 				i := A_Index
-				
 				if (line == 1)
 					csv.%A_LoopField% := { index: i, value: "" }
-                else if (line == 2)
+				else if (line == 2)
 					For key, val in csv.OwnProps()
-                        if (csv.%key%.index == i)
-                            csv.%key%.value := A_LoopField
-            }
-        }
-    }
-    catch Error as e {
-        MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . paths.csv.full . "`nAlso check that the csv file is in the correct format.")
-        return
-    }
+				if (csv.%key%.index == i)
+					csv.%key%.value := A_LoopField
+			}
+		}
+	}
+	catch Error as e {
+		MsgBox("An error occured:`n`n" . e.Message . "`n`nPlease check that the path is correct: " . csvPath . "`nAlso check that the csv file is in the correct format.")
+		return 0
+	}
+	return 1
 }
 
 
