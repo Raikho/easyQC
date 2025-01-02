@@ -32,7 +32,6 @@ data := {
 	roll: { value: "1", displayName: "Roll" },
 }
 setupForIni(data, "main")
-populateFromIni(data) 
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
@@ -41,7 +40,6 @@ settings := {
 	orderPrefix: { value: "20010", displayName: "Prefix" },
 }
 setupForIni(settings, "settings")
-populateFromIni(settings)
 
 sampleData := {
 	initials: { value: "..", displayName: "Initials" },
@@ -51,7 +49,6 @@ sampleData := {
 	roll: { value: "1", displayName: "Roll" },
 }
 setupForIni(sampleData, "samples")
-populateFromIni(sampleData)
 
 labelData := {
 	order: { value: "'20010....", displayName: "Order#", index: 1 },
@@ -63,7 +60,6 @@ labelData := {
  	customer: { value: "<customer>", displayName: "Customer", index: 7 },
 }
 setupForIni(labelData, "label")
-populateFromIni(labelData)
 
 samplePlusButton := { }
 sampleMinusButton := { }
@@ -75,7 +71,6 @@ paths := {
 	csv_file: { value: "RFID-PACKLABEL.csv" },
 }
 setupForIni(paths, "paths")
-populateFromIni(paths)
 
 csv := { }
 
@@ -109,10 +104,6 @@ setupForIni(items, section) {
 	for (key, item in items.OwnProps()) {
 		item.iniName := key
 		item.iniSection := section
-	}
-}
-populateFromIni(items) {
-	for (key, item in items.OwnProps()) {
 		item.value := readItem(item)
 	}
 }
@@ -190,7 +181,7 @@ setupMainTab(tabNum) {
 	editOpt := { ySection: 0, width: 170, background: PALE_BLUE }
 	createEdit(data.customer, textOpt, editOpt)
 
-	; ============================ ORDER ============================
+	; ====================== ORDER / QUICK_ORDER ====================
 	; ===============================================================
 
 	textOpt := { xSection: 0, newSection: true }
@@ -295,9 +286,10 @@ setupLabelTab(tabNum) {
 	readButton := MyGui.AddButton("xp+10 yp+20 h30", "read")
 	readButton.OnEvent("Click", onRead)
 	writeButton := MyGui.AddButton("x+15 yp h30", "write")
-	readButton.OnEvent("Click", onWrite)
+	writeButton.OnEvent("Click", onWrite)
 	myGui.SetFont("s8")
-	pathText := MyGui.AddText("xS+22 yS+55 cGray", "Path: " . ".\test\RFID-PACKLABEL.csv") ; TODO
+	path := (devMode ? ".\test\" : paths.csv_dir.value) . paths.csv_file.value
+	pathText := MyGui.AddText("xS+22 yS+55 cGray", "Path: " . path)
 	myGui.SetFont("s12")
 
 	; ==== LABEL DATA ====
@@ -468,7 +460,26 @@ onRead(*) {
 	}
 }
 onWrite(*) {
+	try {
+		csvPath := (devMode ? ".\test\out_" : paths.csv_dir.value) . paths.csv_file.value
+		file := FileOpen(csvPath, "w") ; TODO: add path option
+		out := ""
 
+        out .= "`"Order#`",`"UPC`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
+        out .= "`"" . labelData.order.gui.value . "`"" . ","
+        out .= "`"" . labelData.upc.gui.value . "`"" . ","
+        out .= "`"" . labelData.initials.gui.value . "`"" . ","
+        out .= "`"" . labelData.date.gui.value . "`"" . ","
+        out .= "`"" . labelData.roll.gui.value . "`"" . ","
+        out .= "`"" . labelData.quantity.gui.value . "`"" . ","
+        out .= "`"" . labelData.customer.gui.value . "`""
+
+		file.Write(out)
+		file.Close()
+		MsgBox("finished")
+	} catch as e {
+		MsgBox("An error ocurred: `n", e)
+	}
 }
 readCsv(*) {
 	csvPath := (devMode ? ".\test\" : paths.csv_dir.value) . paths.csv_file.value
