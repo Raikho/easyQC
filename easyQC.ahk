@@ -14,7 +14,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 2 : 1
+DEFAULT_TAB := devMode ? 3 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; colors
@@ -52,6 +52,18 @@ sampleData := {
 	roll: { value: "1", displayName: "Roll" },
 }
 setupForIni(sampleData, "samples")
+populateFromIni(sampleData)
+
+labelData := {
+	order: { value: "'20010....", displayName: "Order#", index: 1 },
+ 	upc: { value: "'............", displayName: "Upc", index: 2 },
+ 	initials: { value: "'..", displayName: "QC By", index: 3 },
+ 	date: { value: "../../....", displayName: "Date", index: 4 },
+	roll: { value: "1", displayName: "Roll #", index: 5 },
+ 	quantity: { value: "0", displayName: "Qty", index: 6 },
+ 	customer: { value: "<customer>", displayName: "Customer", index: 7 },
+}
+setupForIni(labelData, "label")
 populateFromIni(sampleData)
 
 samplePlusButton := { }
@@ -270,10 +282,53 @@ setupSamplesTab(tabNum) {
 
 setupLabelTab(tabNum) {
 	Tab.UseTab(tabNum)
+	myGui.MarginY := 7
+	myGui.SetFont("s12")
+	boxHeight := 23
 
-	myGui.AddGroupBox("w330 h100 cGray Section", "actions")
+	myGui.AddGroupBox("w330 h50 cGray Section", "actions")
 
-	myGui.AddGroupBox("w330 h100 cBlue Section", "label data")
+	myGui.AddGroupBox("w330 h265 cBlue Section", "label data")
+
+	; Order
+	textOpt := { xPrev: 10, yPrev: 30, newSection: true, height: boxHeight }
+	editOpt := { ySection: 0, width: 160, height: 23 }
+	createEdit(labelData.order, textOpt, editOpt)
+
+	; UPC
+	textOpt := { xSection: 0, newSection: true, height: boxHeight }
+	editOpt := { ySection: 0, width: 160 }
+	createEdit(labelData.upc, textOpt, editOpt)
+
+	; INITIALS
+	textOpt := { xSection: 0, newSection: true, height: boxHeight }
+	editOpt := { uppsercase: true, charLimit: 3, ySection: 0, width: 50, }
+	createEdit(labelData.initials, textOpt, editOpt)
+
+	; DATE
+	textOpt := { xSection: 0, newSection: true, height: boxHeight }
+	editOpt := { charLimit: 10, ySection: 0, width: 130, }
+	createEdit(labelData.date, textOpt, editOpt)
+
+	; ROLL
+	textOpt := { xSection: 0, newSection: true, height: boxHeight }
+	editOpt := { charLimit: 12, ySection: 0, width: 70 }
+	createEdit(labelData.roll, textOpt, editOpt)
+	myGui.AddUpDown("Range1-200 Wrap", labelData.roll.value)
+
+	; QTY
+	textOpt := { xSection: 0, newSection: true, height: boxHeight }
+	editOpt := { number: true, charLimit: 2, ySection: 0, width: 40, }
+	createEdit(labelData.quantity, textOpt, editOpt)
+
+	; CUSTOMER
+	textOpt := { xSection: 0, newSection: true, height: boxHeight }
+	editOpt := { ySection: 0, width: 130, }
+	createEdit(labelData.customer, textOpt, editOpt)
+
+
+	myGui.SetFont("s14")
+	myGui.MarginY := 11
 }
 
 setupSettingsTab(tabNum) {
