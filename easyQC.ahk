@@ -7,7 +7,7 @@
 
 devMode := IniRead("config.ini", "debug", "devMode", 0)
 
-; constants
+; CONSTANTS
 WINDOW_WIDTH := 371
 WINDOW_HEIGHT :=  400
 WINDOW_X := devMode ? -600 : 0
@@ -17,10 +17,11 @@ TAB_FONT_SIZE := 10
 DEFAULT_TAB := devMode ? 3 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
-; colors
+; COLORS
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
 
+; GLOBAL VARIABLES
 data := {
 	initials: { value: "..", displayName: "Initials" },
 	customer: { value: "<customer>", displayName: "Customer" },
@@ -52,7 +53,7 @@ setupForIni(sampleData, "samples")
 
 labelData := {
 	order: { value: "'20010....", displayName: "Order#", index: 1 },
- 	upc: { value: "'............", displayName: "Upc", index: 2 },
+ 	upc: { value: "'............", displayName: "UPC", index: 2 },
  	initials: { value: "'..", displayName: "QC By", index: 3 },
  	date: { value: "../../....", displayName: "Date", index: 4 },
 	roll: { value: "1", displayName: "Roll #", index: 5 },
@@ -73,6 +74,7 @@ paths := {
 setupForIni(paths, "paths")
 
 csv := { }
+defaultButtons := [{}, {}, {}, {}]
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
@@ -91,6 +93,7 @@ setupMainTab(1)
 setupSamplesTab(2)
 setupLabelTab(3)
 setupSettingsTab(4)
+onTabChange(Tab)
 
 myGui.OnEvent("Close", (*) => ExitApp)
 myGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
@@ -139,7 +142,12 @@ saveItem(item) {
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
 hasGui(item) => item.HasProp("gui")
-updateStatusBar(tabObj) => statusBar.SetText(tabStatusMessages[tabObj.Value])
+
+onTabChange(tabObj) {
+	statusBar.SetText(tabStatusMessages[tabObj.Value])
+	tabNum := tabObj.value
+	defaultButtons[tabNum].Opt("+Default")
+}
 
 clearItems(items) {
 	for key, item in items.OwnProps() {
@@ -161,9 +169,8 @@ setupTabs() {
 	myGui.SetFont("s" . TAB_FONT_SIZE)
 	Tab := myGui.AddTab3("-wrap choose" . DEFAULT_TAB, ["Main", "Samples", "Label", "Settings"])
 	myGui.SetFont("s" . FONT_SIZE)
-	updateStatusBar(Tab)
 
-	Tab.OnEvent("Change", (*) => updateStatusBar(Tab))
+	Tab.OnEvent("Change", (*) => onTabChange(Tab))
 	return Tab
 }
 
@@ -218,20 +225,20 @@ setupMainTab(tabNum) {
 	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
 
 	; SAMPLE BUTTONS
-	buttonOpt := { xSection: 200, ySection: -5, width: 20, height: 20} ; 286 aligns right edge
+	buttonOpt := { xSection: 200, ySection: -5, width: 20, height: 20, stopTab: true} ; 286 aligns right edge
 	fontOpt := { fontSize: 8 }
 	sampleMinusButton.gui := createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
-	buttonOpt := { xPrev: 0, yPrev: 20, width: 20, height: 20}
+	buttonOpt := { xPrev: 0, yPrev: 20, width: 20, height: 20, stopTab: true}
 	fontOpt := { fontSize: 8 }
 	samplePlusButton.gui := createButton(buttonOpt, "s+", (*) => addSample("plus"), fontOpt)
 	updateSampleButtons()
 
 	; CLEAR BUTTON
-	buttonOpt := { xMargin: 288, yMargin: 275 + TAB_FONT_SIZE, width: 50, height: 20}
+	buttonOpt := { xMargin: 288, yMargin: 275 + TAB_FONT_SIZE, width: 50, height: 20, stopTab: true}
 	fontOpt := { fontSize: 8 }
 	createButton(buttonOpt, "CLEAR", (*) => clearItems(data), fontOpt)
 
-	setupPressEnterForNextItem()
+	createDefaultEnterButton(tabNum)
 }
 
 updateStyleLock() {
@@ -273,6 +280,8 @@ setupSamplesTab(tabNum) {
 	editOpt := { charLimit: 12, ySection: 0, width: 70 }
 	createEdit(sampleData.roll, textOpt, editOpt)
 	myGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
+
+	createDefaultEnterButton(tabNum)
 }
 
 setupLabelTab(tabNum) {
@@ -283,10 +292,11 @@ setupLabelTab(tabNum) {
 
 	; ==== ACTIONS ==== 
 	myGui.AddGroupBox("w330 h65 cGray Section", "actions")
-	readButton := MyGui.AddButton("xp+10 yp+20 h30", "read")
+	readButton := MyGui.AddButton("xp+10 yp+20 h30 -TabStop", "read")
 	readButton.OnEvent("Click", onRead)
-	writeButton := MyGui.AddButton("x+15 yp h30", "write")
+	writeButton := MyGui.AddButton("x+15 yp h30 -TabStop", "write")
 	writeButton.OnEvent("Click", onWrite)
+
 	myGui.SetFont("s8")
 	path := (devMode ? ".\test\" : paths.csv_dir.value) . paths.csv_file.value
 	pathText := MyGui.AddText("xS+22 yS+55 cGray", "Path: " . path)
@@ -298,6 +308,18 @@ setupLabelTab(tabNum) {
 	textOpt := { xSection: 10, ySection: 25, newSection: true, height: boxHeight }
 	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.order, textOpt, editOpt)
+
+	buttonOptions := { xPrev: 160 + 30, yPrev: 0, height: 25, width: 25 } ; Make so can't tab to it
+	btn := createButton(buttonOptions, "fix", (*) => MsgBox("clicked fix"))
+	btn.Opt("-TabStop")
+	btn.SetFont("s6")
+
+	fixOrder() {
+		str := labelData.order.gui.value
+		; check if apostrophe
+		; either add or remove apostraphe
+		labelData.order.gui.value := str
+	}
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
@@ -332,6 +354,8 @@ setupLabelTab(tabNum) {
 
 	myGui.SetFont("s14")
 	myGui.MarginY := 11
+
+	createDefaultEnterButton(tabNum)
 }
 
 setupSettingsTab(tabNum) {
@@ -354,12 +378,14 @@ setupSettingsTab(tabNum) {
 	editOpt := { ySection: 0, width: 80 }
 	createEdit(settings.orderPrefix, textOpt, editOpt)
 	updateQuickOrderVisibility()
+
+	createDefaultEnterButton(tabNum)
 }
 
-setupPressEnterForNextItem() {
-	defaultButton := MyGui.AddButton("x0 y0 Default", "button")
-	defaultButton.Visible := false
-	defaultButton.onEvent("Click", (*) => SendInput("{Tab}"))
+createDefaultEnterButton(tabNum) {
+	defaultButtons[tabNum] := myGui.AddButton("x0 y0 Default", "button")
+	defaultButtons[tabNum].Visible := false
+	defaultButtons[tabNum].onEvent("Click", (*) => SendInput("{Tab}"))
 }
 
 createEditboxOnly(item, editboxOptions) {
@@ -459,26 +485,30 @@ onRead(*) {
 		continue
 	}
 }
+csvConcat(array) {
+	out .= ""
+	for (index, value in array)
+		out .= "`"" . value . "`"" . (index != array.Length ? "," : "")
+	return out
+}
 onWrite(*) {
 	try {
+		csvKeysArray := ["","","","","","",""]
+		csvValuesArray := ["","","","","","",""]
+		for key, item in labelData.OwnProps() {
+			csvKeysArray[item.index] := item.displayName
+			csvValuesArray[item.index] := item.gui.value
+		}
+		csvKeys := csvConcat(csvKeysArray)
+		csvValues := csvConcat(csvValuesArray)
+		csvOut := csvKeys . "`n" . csvValues
+
 		csvPath := (devMode ? ".\test\out_" : paths.csv_dir.value) . paths.csv_file.value
 		file := FileOpen(csvPath, "w") ; TODO: add path option
-		out := ""
-
-        out .= "`"Order#`",`"UPC`",`"QC By`",`"Date`",`"Roll #`",`"Qty`",`"Customer`"`n"
-        out .= "`"" . labelData.order.gui.value . "`"" . ","
-        out .= "`"" . labelData.upc.gui.value . "`"" . ","
-        out .= "`"" . labelData.initials.gui.value . "`"" . ","
-        out .= "`"" . labelData.date.gui.value . "`"" . ","
-        out .= "`"" . labelData.roll.gui.value . "`"" . ","
-        out .= "`"" . labelData.quantity.gui.value . "`"" . ","
-        out .= "`"" . labelData.customer.gui.value . "`""
-
-		file.Write(out)
+		file.Write(csvOut)
 		file.Close()
-		MsgBox("finished")
 	} catch as e {
-		MsgBox("An error ocurred: `n", e)
+		MsgBox("An error ocurred during writing: `n" . e.Message)
 	}
 }
 readCsv(*) {
@@ -546,6 +576,9 @@ formatOptions(obj) {
 		str .= "bold" . " "
 	if (obj.HasProp("checked") && obj.checked == 1)
 		str .= "checked" . " "
+	if (obj.HasProp("stopTab") && obj.stopTab == true)
+		str .= "-TabStop" . " "
+
 
 	return str
 }
