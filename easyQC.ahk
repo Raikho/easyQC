@@ -20,6 +20,8 @@ tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output v
 ; COLORS
 PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
+SOLAR_BLUE := "268bd2"
+LIGHT_ORANGE := "fed7aa"
 
 ; GLOBAL VARIABLES
 data := {
@@ -32,7 +34,7 @@ data := {
 	style: { value: "....", displayName: "Style" },
 	roll: { value: "1", displayName: "Roll" },
 }
-setupForIni(data, "main", hasPreviousValues := true)
+setupForIni(data, "main")
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
@@ -141,7 +143,25 @@ saveItem(item) {
 	}
 
 	writeItem(item)
+	updateItemBg(item)
 }
+
+updateItemBg(item) {
+	if item.HasProp("prevValue") {
+		if (item.gui.value != item.prevValue)
+			item.gui.Opt("Background" . LIGHT_ORANGE)
+		else
+			item.gui.Opt("-Background")
+	}
+}
+
+updatePrevValues(items) {
+	for (key, item in items.OwnProps()) {
+		item.prevValue := item.gui.value
+		writeItemPrev(item)
+	}
+}
+
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
 writeItemPrev(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, "prev_" . item.iniName)
@@ -450,6 +470,7 @@ fixItem(item, typeArr) {
 			item.gui.value := String(Floor(Number(value)))
 		}
 	}
+	saveItem(item)
 }
 
 updateQuickOrderVisibility() {
@@ -505,7 +526,8 @@ updateSampleButtons() {
 }
 
 onRead(*) {
-	readCsv()
+	if !readCsv()
+		return
 
 	for key1, csvItem in csv.OwnProps()
 	for key2, labelItem  in labelData.OwnProps()
@@ -514,6 +536,8 @@ onRead(*) {
 		saveItem(labelItem)
 		continue
 	}
+
+	updatePrevValues(labelData)
 }
 csvConcat(array) {
 	out .= ""
