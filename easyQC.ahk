@@ -148,13 +148,22 @@ saveItem(item) {
 
 updateItemBg(item) {
 	if item.HasProp("prevValue") {
-		if (item.gui.value != item.prevValue)
+		if (StrCompare(item.gui.value, item.prevValue, 1))
 			item.gui.Opt("Background" . LIGHT_ORANGE)
 		else
 			item.gui.Opt("-Background")
+		item.gui.Opt("+Redraw")
 	}
 }
-
+clearBgsForWrite(items) {
+	for key, item in items.OwnProps(){
+		if (item.gui.value != item.prevValue)
+			item.gui.Opt("Background" . PALE_BLUE)
+		else
+			item.gui.Opt("-Background")
+		item.gui.Opt("+Redraw")
+	}
+}
 updatePrevValues(items) {
 	for (key, item in items.OwnProps()) {
 		item.prevValue := item.gui.value
@@ -372,8 +381,9 @@ setupLabelTab(tabNum) {
 
 	; QTY
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { number: true, charLimit: 2, ySection: 0, width: 40, height: boxHeight }
+	editOpt := { number: true, charLimit: 2, ySection: 0, width: 70, height: boxHeight }
 	createEdit(labelData.quantity, textOpt, editOpt)
+	quickFixButtonSetup(labelData.quantity, ["remove_comma"])
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
@@ -384,6 +394,9 @@ setupLabelTab(tabNum) {
 	myGui.MarginY := 11
 
 	createDefaultEnterButton(tabNum)
+	for key, item in labelData.OwnProps() {
+		updateItemBg(item)
+	}
 }
 
 setupSettingsTab(tabNum) {
@@ -451,23 +464,38 @@ createCheckbox(item, options) {
 }
 
 fixItem(item, typeArr) {
-	value := item.gui.value
 	for index, type in typeArr {
+		value := item.gui.value
 		switch type {
 			case "add_apostrophe":
 			firstChar := SubStr(value, 1, 1)
 			if (firstChar != "'")
-				item.gui.value := "'" . value ; TODO: save val for this and others
+				item.gui.value := "'" . value
 
 			case "remove_apostrophe":
 			firstChar := SubStr(value, 1, 1)
 			if (firstChar == "'")
 				item.gui.value := SubStr(value, 2) ; TODO: test this
 
+			case "caps":
+			item.gui.value := StrUpper(value)
+
 			case "fix_date":
+			strings := StrSplit(value, "/")
+			month := strings[1], day := strings[2], year := strings[3]
+			if StrLen(month) == 1
+				month := "0" . month
+			if StrLen(day) == 1
+				day := "0" . day
+			if StrLen(year) == 2
+				year := "20" . year
+			item.gui.value := month . "/" . day . "/" . year
 
 			case "remove_shortage":
 			item.gui.value := String(Floor(Number(value)))
+
+			case "remove_comma":
+			item.gui.value := RegExReplace(value, ",", "")
 		}
 	}
 	saveItem(item)
@@ -534,7 +562,6 @@ onRead(*) {
 	if (labelItem.index == csvItem.index) {
 		labelItem.gui.value := csvItem.value
 		saveItem(labelItem)
-		continue
 	}
 
 	updatePrevValues(labelData)
@@ -556,11 +583,11 @@ onWrite(*) {
 		csvKeys := csvConcat(csvKeysArray)
 		csvValues := csvConcat(csvValuesArray)
 		csvOut := csvKeys . "`n" . csvValues
-
 		csvPath := (devMode ? ".\test\out_" : paths.csv_dir.value) . paths.csv_file.value
 		file := FileOpen(csvPath, "w") ; TODO: add path option
 		file.Write(csvOut)
 		file.Close()
+		clearBgsForWrite(labelData)
 	} catch as e {
 		MsgBox("An error ocurred during writing: `n" . e.Message)
 	}
