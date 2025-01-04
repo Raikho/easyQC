@@ -111,29 +111,29 @@ setupForIni(items, section) {
 	}
 }
 saveItem(item) {
-	switch item.iniName {
-		case "order":
+	switch (item.iniSection . "." . item.iniName) { ; TODO: restrict to data object
+		case "main.order":
 		data.postOrder.gui.value := SubStr(item.gui.value, -4)
 		writeItem(data.postOrder)
 
-		case "upc":
+		case "main.upc":
 		updateStyleLock()
 
-		case "postOrder":
+		case "main.postOrder":
 		data.order.gui.value := "20010" . item.gui.value
 		writeItem(data.order)
 
-		case "quickOrder":
+		case "main.quickOrder":
 		updateQuickOrderVisibility()
 
-		case "orderPrefix":
+		case "main.orderPrefix":
 		data.preOrder.gui.value := item.gui.value
 		writeItem(data.preOrder)
 
-		case "autoStyle":
+		case "main.autoStyle":
 		updateStyleLock()
 
-		case "roll":
+		case "main.roll":
 		updateSampleButtons
 	}
 
@@ -309,38 +309,41 @@ setupLabelTab(tabNum) {
 	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.order, textOpt, editOpt)
 
-	buttonOptions := { xPrev: 160 + 30, yPrev: 0, height: 25, width: 25 } ; Make so can't tab to it
-	btn := createButton(buttonOptions, "fix", (*) => MsgBox("clicked fix"))
-	btn.Opt("-TabStop")
-	btn.SetFont("s6")
-
-	fixOrder() {
-		str := labelData.order.gui.value
-		; check if apostrophe
-		; either add or remove apostraphe
-		labelData.order.gui.value := str
+	quickFixButtonSetup(item, typeArr) {
+		btnOptions := { xPrev: 160 + 30, yPrev: 0, height: 25, width: 25, stopTab: true }
+		btn := createButton(btnOptions, "fix", (*) => fixItem(item,  typeArr))
+		btn.SetFont("s6")
 	}
+	quickFixButtonSetup(labelData.order, ["add_apostrophe"])
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.upc, textOpt, editOpt)
 
+	quickFixButtonSetup(labelData.upc, ["add_apostrophe"])
+
 	; INITIALS
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { uppsercase: true, charLimit: 3, ySection: 0, width: 50, height: boxHeight}
 	createEdit(labelData.initials, textOpt, editOpt)
+
+	quickFixButtonSetup(labelData.initials, ["add_apostrophe", "caps"])
 
 	; DATE
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { charLimit: 10, ySection: 0, width: 130, height: boxHeight}
 	createEdit(labelData.date, textOpt, editOpt)
 
+	quickFixButtonSetup(labelData.date, ["fix_date"])
+
 	; ROLL
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { charLimit: 12, ySection: 0, width: 70, height: boxHeight }
 	createEdit(labelData.roll, textOpt, editOpt)
 	myGui.AddUpDown("Range1-200 Wrap", labelData.roll.value)
+
+	quickFixButtonSetup(labelData.roll, ["remove_shortage"])
 
 	; QTY
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
@@ -420,6 +423,28 @@ createButton(buttonOptions, name, my_function, fontOptions?) {
 createCheckbox(item, options) {
 	item.gui := myGui.AddCheckBox(formatOptions(options), item.displayName)
 	item.gui.onEvent("Click", (*) => saveItem(item))
+}
+
+fixItem(item, typeArr) {
+	value := item.gui.value
+	for index, type in typeArr {
+		switch type {
+			case "add_apostrophe":
+			firstChar := SubStr(value, 1, 1)
+			if (firstChar != "'")
+				item.gui.value := "'" . value ; TODO: save val for this and others
+
+			case "remove_apostrophe":
+			firstChar := SubStr(value, 1, 1)
+			if (firstChar == "'")
+				item.gui.value := SubStr(value, 2) ; TODO: test this
+
+			case "fix_date":
+
+			case "remove_shortage":
+			item.gui.value := String(Floor(Number(value)))
+		}
+	}
 }
 
 updateQuickOrderVisibility() {
