@@ -140,10 +140,6 @@ saveItem(item) {
 		updateSampleButtons
 	}
 
-	if (item.HasProp("prevValue")) {
-		item.prevValue := readItem(item)
-		writeItemPrev(item)
-	}
 	writeItem(item)
 }
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
