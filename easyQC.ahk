@@ -32,7 +32,7 @@ data := {
 	style: { value: "....", displayName: "Style" },
 	roll: { value: "1", displayName: "Roll" },
 }
-setupForIni(data, "main")
+setupForIni(data, "main", hasPreviousValues := true)
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
@@ -60,7 +60,7 @@ labelData := {
  	quantity: { value: "0", displayName: "Qty", index: 6 },
  	customer: { value: "<customer>", displayName: "Customer", index: 7 },
 }
-setupForIni(labelData, "label")
+setupForIni(labelData, "label", hasPreviousValues := true)
 
 samplePlusButton := { }
 sampleMinusButton := { }
@@ -103,11 +103,14 @@ myGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
 ; ===================================== FUNCTIONS =======================================
 ; =======================================================================================
 
-setupForIni(items, section) {
+setupForIni(items, section, hasPreviousValues := false) {
 	for (key, item in items.OwnProps()) {
 		item.iniName := key
 		item.iniSection := section
 		item.value := readItem(item)
+
+		if (hasPreviousValues)
+			item.prevValue := readItemPrev(item)
 	}
 }
 saveItem(item) {
@@ -133,14 +136,20 @@ saveItem(item) {
 		case "main.autoStyle":
 		updateStyleLock()
 
-		case "main.roll":
+		case "main.roll": 
 		updateSampleButtons
 	}
 
+	if (item.HasProp("prevValue")) {
+		item.prevValue := readItem(item)
+		writeItemPrev(item)
+	}
 	writeItem(item)
 }
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
 readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
+writeItemPrev(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, "prev_" . item.iniName)
+readItemPrev(item) => IniRead("config.ini", item.iniSection, "prev_" . item.iniName, item.value)
 hasGui(item) => item.HasProp("gui")
 
 onTabChange(tabObj) {
