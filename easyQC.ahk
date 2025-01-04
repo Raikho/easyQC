@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 4 : 1
+DEFAULT_TAB := devMode ? 3 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -53,13 +53,13 @@ sampleData := {
 setupForIni(sampleData, "samples")
 
 labelData := {
-	order: { value: "'20010....", displayName: "Order#", index: 1 },
- 	upc: { value: "'............", displayName: "UPC", index: 2 },
- 	initials: { value: "'..", displayName: "QC By", index: 3 },
- 	date: { value: "../../....", displayName: "Date", index: 4 },
-	roll: { value: "1", displayName: "Roll #", index: 5 },
- 	quantity: { value: "0", displayName: "Qty", index: 6 },
- 	customer: { value: "<customer>", displayName: "Customer", index: 7 },
+	order: { value: "'20010....", displayName: "Order#", index: 1, fixes: ["add_apostrophe"] },
+ 	upc: { value: "'............", displayName: "UPC", index: 2, fixes: ["add_apostrophe"] },
+ 	initials: { value: "'..", displayName: "QC By", index: 3, fixes: ["add_apostrophe", "caps"] },
+ 	date: { value: "../../....", displayName: "Date", index: 4, fixes: ["fix_date"] },
+	roll: { value: "1", displayName: "Roll #", index: 5, fixes: ["remove_shortage"] },
+ 	quantity: { value: "0", displayName: "Qty", index: 6, fixes: ["remove_comma"] },
+ 	customer: { value: "<customer>", displayName: "Customer", index: 7, fixes: [] },
 }
 setupForIni(labelData, "label", hasPreviousValues := true)
 
@@ -138,8 +138,11 @@ saveItem(item) {
 		updateStyleLock()
 
 		case "main.roll": 
-		updateSampleButtons
+		updateSampleButtons()
 	}
+
+	if (item.iniSection := "label" && item.HasProp("fixButton"))
+		item.fixButton.visible := canFix(item)
 
 	writeItem(item)
 	updateItemBg(item)
@@ -252,7 +255,7 @@ setupMainTab(tabNum) {
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { charLimit: 12, ySection: 0, width: 70, background: NAVY_BLUE, center: True }
+	editOpt := { charLimit: 5, ySection: 0, width: 70, background: NAVY_BLUE, center: True }
 	fontOpt := { bold: true, foreground: PALE_BLUE, fontName: "Arial"}
 	createEdit(data.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
@@ -337,52 +340,53 @@ setupLabelTab(tabNum) {
 
 	; ==== LABEL DATA ====
 	myGui.AddGroupBox("xS w330 h245 cBlue Section", "label data")
+
+	quickFixButtonSetup(item) {
+		if item.fixes.length == 0
+			return
+		btnOptions := { xPrev: 160 + 30, yPrev: 0, height: 25, width: 25, stopTab: true }
+		item.fixButton := createButton(btnOptions, "fix", (*) => fixItem(item))
+		item.fixButton.SetFont("s6")
+		item.fixButton.Visible := canFix(item)
+	}
+
 	; ORDER
 	textOpt := { xSection: 10, ySection: 25, newSection: true, height: boxHeight }
 	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.order, textOpt, editOpt)
-
-	quickFixButtonSetup(item, typeArr) {
-		btnOptions := { xPrev: 160 + 30, yPrev: 0, height: 25, width: 25, stopTab: true }
-		btn := createButton(btnOptions, "fix", (*) => fixItem(item,  typeArr))
-		btn.SetFont("s6")
-	}
-	quickFixButtonSetup(labelData.order, ["add_apostrophe"])
+	quickFixButtonSetup(labelData.order)
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { ySection: 0, width: 160, height: boxHeight }
 	createEdit(labelData.upc, textOpt, editOpt)
-
-	quickFixButtonSetup(labelData.upc, ["add_apostrophe"])
+	quickFixButtonSetup(labelData.upc)
 
 	; INITIALS
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { uppsercase: true, charLimit: 3, ySection: 0, width: 50, height: boxHeight}
+	editOpt := { charLimit: 3, ySection: 0, width: 50, height: boxHeight}
 	createEdit(labelData.initials, textOpt, editOpt)
+	quickFixButtonSetup(labelData.initials)
 
-	quickFixButtonSetup(labelData.initials, ["add_apostrophe", "caps"])
-
-	; DATE
+	; DATE TODO: scroll date
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { charLimit: 10, ySection: 0, width: 130, height: boxHeight}
 	createEdit(labelData.date, textOpt, editOpt)
-
-	quickFixButtonSetup(labelData.date, ["fix_date"])
+	quickFixButtonSetup(labelData.date)
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { charLimit: 12, ySection: 0, width: 70, height: boxHeight }
+	editOpt := { charLimit: 5, ySection: 0, width: 70, height: boxHeight }
 	createEdit(labelData.roll, textOpt, editOpt)
-	myGui.AddUpDown("Range1-200 Wrap", labelData.roll.value)
-
-	quickFixButtonSetup(labelData.roll, ["remove_shortage"])
+	x := myGui.AddUpDown("Range1-200 Wrap", labelData.roll.value)
+	labelData.roll.gui.value := readItem(labelData.roll)
+	quickFixButtonSetup(labelData.roll)
 
 	; QTY
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { number: true, charLimit: 2, ySection: 0, width: 70, height: boxHeight }
 	createEdit(labelData.quantity, textOpt, editOpt)
-	quickFixButtonSetup(labelData.quantity, ["remove_comma"])
+	quickFixButtonSetup(labelData.quantity)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
@@ -476,10 +480,10 @@ createCheckbox(item, options) {
 	item.gui.onEvent("Click", (*) => saveItem(item))
 }
 
-fixItem(item, typeArr) {
-	for index, type in typeArr {
+fixItem(item) {
+	for index, fix in item.fixes {
 		value := item.gui.value
-		switch type {
+		switch fix {
 			case "add_apostrophe":
 			firstChar := SubStr(value, 1, 1)
 			if (firstChar != "'")
@@ -512,6 +516,40 @@ fixItem(item, typeArr) {
 		}
 	}
 	saveItem(item)
+}
+
+canFix(item) {
+	for index, fix in item.fixes {
+		value := item.gui.value
+		switch fix {
+			case "add_apostrophe":
+			if SubStr(value, 1, 1) != "'"
+				return true
+
+			case "remove_apostrophe":
+			if SubStr(value, 1, 1) == "'"
+				return true
+
+			case "caps":
+			if !IsUpper(LTrim(value, "'"))
+				return true
+
+			case "remove_shortage":
+			if IsFloat(value)
+				return true
+
+			case "fix_date":
+			strings := StrSplit(value, "/")
+			month := strings[1], day := strings[2], year := strings[3]
+			if StrLen(month) == 1 || StrLen(day) == 1 || StrLen(year) == 2
+				return true
+
+			case "remove_shortage":
+
+			case "remove_comma":
+		}
+	}
+	return false
 }
 
 updateQuickOrderVisibility() {
