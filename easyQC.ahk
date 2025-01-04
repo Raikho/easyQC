@@ -1,6 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance force
-
 ; =======================================================================================
 ; ==================================== LOAD VARIABLES ===================================
 ; =======================================================================================
@@ -14,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 3 : 1
+DEFAULT_TAB := devMode ? 4 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -69,8 +68,8 @@ sampleMinusButton := { }
 
 paths := {
 	rfid_dir: { value: "C:\RFID\PROG\" },
-	rfid_file: { value: "RFIDQAR420.exe" },
-	csv_dir: { value: "C:\RFID\PACKLABEL\" },
+	rfid_file: { value: "RFIDQAR420.exe", displayName: "RFID Program" },
+	csv_dir: { value: "C:\RFID\PACKLABEL\", displayName: "CSV Path" },
 	csv_file: { value: "RFID-PACKLABEL.csv" },
 }
 setupForIni(paths, "paths")
@@ -261,10 +260,10 @@ setupMainTab(tabNum) {
 	; SAMPLE BUTTONS
 	buttonOpt := { xSection: 200, ySection: -5, width: 20, height: 20, stopTab: true} ; 286 aligns right edge
 	fontOpt := { fontSize: 8 }
-	sampleMinusButton.gui := createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
+	samplePlusButton.gui := createButton(buttonOpt, "s+", (*) => addSample("plus"), fontOpt)
 	buttonOpt := { xPrev: 0, yPrev: 20, width: 20, height: 20, stopTab: true}
 	fontOpt := { fontSize: 8 }
-	samplePlusButton.gui := createButton(buttonOpt, "s+", (*) => addSample("plus"), fontOpt)
+	sampleMinusButton.gui := createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
 	updateSampleButtons()
 
 	; CLEAR BUTTON
@@ -401,6 +400,7 @@ setupLabelTab(tabNum) {
 
 setupSettingsTab(tabNum) {
 	Tab.UseTab(tabNum)
+	myGui.MarginY := 5
 
 	myGui.AddGroupBox("w330 h300 cGray Section", "general")
 
@@ -420,7 +420,20 @@ setupSettingsTab(tabNum) {
 	createEdit(settings.orderPrefix, textOpt, editOpt)
 	updateQuickOrderVisibility()
 
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { xSection: 0, width: 260 }
+	fontOpt := { fontSize: 12, fontName: "Consolas" }
+	createEdit(paths.rfid_file, textOpt, editOpt, fontOpt)
+	paths.rfid_file.textGui.SetFont("s12")
+
+	textOpt := { xSection: 0, newSection: true }
+	editOpt := { xSection: 0, width: 260 }
+	fontOpt := { fontSize: 11, fontName: "Consolas" }
+	createEdit(paths.csv_dir, textOpt, editOpt, fontOpt)
+	paths.csv_dir.textGui.SetFont("s12")
+
 	createDefaultEnterButton(tabNum)
+	myGui.MarginY := 11
 }
 
 createDefaultEnterButton(tabNum) {
