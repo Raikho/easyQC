@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 3 : 1
+DEFAULT_TAB := devMode ? 4 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -40,6 +40,7 @@ settings := {
 	autoStyle : { value: 0, displayName: "Auto Style" },
 	quickOrder: { value: 0, displayName: "Quick Order" },
 	orderPrefix: { value: "20010", displayName: "Prefix" },
+	enableFixes: { value: 1, displayname: "Enable Fixes" },
 }
 setupForIni(settings, "settings")
 
@@ -98,7 +99,8 @@ onTabChange(Tab)
 
 myGui.OnEvent("Close", (*) => ExitApp)
 myGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
-	WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
+	WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0))
+;	WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
@@ -139,13 +141,23 @@ saveItem(item) {
 
 		case "main.roll": 
 		updateSampleButtons()
+
+		case "settings.enableFixes":
+		;MsgBox("saving enable fixes")
+		updateFixVisibility()
 	}
 
-	if (item.iniSection := "label" && item.HasProp("fixButton"))
-		item.fixButton.visible := canFix(item)
+	if (item.iniSection == "label" && item.HasProp("fixButton"))
+		item.fixButton.visible := settings.enableFixes.gui.value ? canFix(item) : false
 
 	writeItem(item)
 	updateItemBg(item)
+}
+
+updateFixVisibility() {
+	for (key, item in labelData.OwnProps())
+		if item.HasProp("fixButton")
+			item.fixButton.Visible := settings.enableFixes.gui.value ? canFix(item) : false
 }
 
 updateItemBg(item) {
@@ -347,7 +359,7 @@ setupLabelTab(tabNum) {
 		btnOptions := { xPrev: 160 + 30, yPrev: 0, height: 25, width: 25, stopTab: true }
 		item.fixButton := createButton(btnOptions, "fix", (*) => fixItem(item))
 		item.fixButton.SetFont("s6")
-		item.fixButton.Visible := canFix(item)
+		item.fixButton.Visible := readItem(settings.enableFixes) && canFix(item)
 	}
 
 	; ORDER
@@ -406,7 +418,7 @@ setupSettingsTab(tabNum) {
 	Tab.UseTab(tabNum)
 	myGui.MarginY := 5
 
-	myGui.AddGroupBox("w330 h300 cGray Section", "general")
+	myGui.AddGroupBox("w330 h330 cGray Section", "general")
 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
 	editOpt := { ySection: 0, width: 80 }
@@ -414,10 +426,10 @@ setupSettingsTab(tabNum) {
 	myGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
 	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value }
-	createCheckbox(settings.autoStyle, opt)
+	createCheckbox(settings.autoStyle, opt, (*) => writeItem(settings.autoStyle))
 
 	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value }
-	createCheckbox(settings.quickOrder, opt)
+	createCheckbox(settings.quickOrder, opt, (*) => saveItem(settings.quickOrder))
 
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { ySection: 0, width: 80 }
@@ -435,6 +447,10 @@ setupSettingsTab(tabNum) {
 	fontOpt := { fontSize: 11, fontName: "Consolas" }
 	createEdit(paths.csv_dir, textOpt, editOpt, fontOpt)
 	paths.csv_dir.textGui.SetFont("s12")
+
+	opt := { xSection: 0, newSection: true, checked: settings.enableFixes.value }
+	createCheckbox(settings.enableFixes, opt, (*) => saveItem(settings.enableFixes))
+
 
 	createDefaultEnterButton(tabNum)
 	myGui.MarginY := 11
@@ -475,9 +491,10 @@ createButton(buttonOptions, name, my_function, fontOptions?) {
 
 	return btn
 }
-createCheckbox(item, options) {
-	item.gui := myGui.AddCheckBox(formatOptions(options), item.displayName)
-	item.gui.onEvent("Click", (*) => saveItem(item))
+createCheckbox(item, options, my_function) {
+	checkString := item.value ? " checked1" : "checked0"
+	item.gui := myGui.AddCheckBox(formatOptions(options) . checkString, item.displayName)
+	item.gui.onEvent("Click", my_function)
 }
 
 fixItem(item) {
