@@ -22,7 +22,7 @@ NAVY_BLUE := "4d6d9a"
 SOLAR_BLUE := "268bd2"
 LIGHT_ORANGE := "fed7aa"
 
-; GLOBAL VARIABLES TODO: use object.base to setup options
+; GLOBAL VARIABLES TODO: use object.base to move more options to this section
 data := {
 	initials: { value: "..", displayName: "Initials" },
 	customer: { value: "<customer>", displayName: "Customer" },
@@ -39,8 +39,8 @@ settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
 	autoStyle : { value: 0, displayName: "Auto Style" },
 	quickOrder: { value: 0, displayName: "Quick Order" },
-	orderPrefix: { value: "20010", displayName: "Prefix" },
-	enableFixes: { value: 1, displayname: "Enable Fixes" },
+	orderPrefix: { value: "20010", displayName: "Prefix" }, 
+	enableFixes: { value: 1, displayname: "Enable Label Fixing" },
 }
 setupForIni(settings, "settings")
 
@@ -128,18 +128,18 @@ saveItem(item) {
 		data.order.gui.value := "20010" . item.gui.value
 		writeItem(data.order)
 
-		case "main.quickOrder":
-		updateQuickOrderVisibility()
-
 		case "main.orderPrefix":
 		data.preOrder.gui.value := item.gui.value
 		writeItem(data.preOrder)
 
-		case "main.autoStyle":
-		updateStyleLock()
-
 		case "main.roll": 
 		updateSampleButtons()
+
+		case "settings.autoStyle":
+		updateStyleLock()
+
+		case "settings.quickOrder":
+		updateQuickOrderVisibility()
 
 		case "settings.enableFixes":
 		;MsgBox("saving enable fixes")
@@ -375,11 +375,11 @@ setupLabelTab(tabNum) {
 
 	; INITIALS
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { charLimit: 3, ySection: 0, width: 50, height: boxHeight}
+	editOpt := { charLimit: 4, ySection: 0, width: 50, height: boxHeight}
 	createEdit(labelData.initials, textOpt, editOpt)
 	quickFixButtonSetup(labelData.initials)
 
-	; DATE TODO: scroll date
+	; DATE 
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
 	editOpt := { charLimit: 10, ySection: 0, width: 130, height: boxHeight}
 	createEdit(labelData.date, textOpt, editOpt)
@@ -417,7 +417,7 @@ setupSettingsTab(tabNum) {
 	Tab.UseTab(tabNum)
 	myGui.MarginY := 5
 
-	myGui.AddGroupBox("w330 h330 cGray Section", "general")
+	myGui.AddGroupBox("w330 h310 cGray Section", "general")
 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
 	editOpt := { ySection: 0, width: 80 }
@@ -425,7 +425,7 @@ setupSettingsTab(tabNum) {
 	myGui.AddUpDown("range1-9999 Wrap", settings.delay.value)
 
 	opt := { xSection: 0, newSection: true, checked: settings.autoStyle.value }
-	createCheckbox(settings.autoStyle, opt, (*) => writeItem(settings.autoStyle))
+	createCheckbox(settings.autoStyle, opt, (*) => saveItem(settings.autoStyle))
 
 	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value }
 	createCheckbox(settings.quickOrder, opt, (*) => saveItem(settings.quickOrder))
@@ -539,26 +539,27 @@ canFix(item) {
 		value := item.gui.value
 		switch fix {
 			case "add_apostrophe":
-			if SubStr(value, 1, 1) != "'"
+			if RegExMatch(value, "^[0-9]{12}$")
 				return true
 
 			case "remove_apostrophe":
-			if SubStr(value, 1, 1) == "'"
+			if RegExMatch(value, "^'[0-9]{12}$")
 				return true
 
 			case "caps":
-			if !IsUpper(LTrim(value, "'"))
+			trimmed := LTrim(value, "'")
+			if (!IsUpper(trimmed) && RegexMatch(LTrim(value, "'"), "^\w+$"))
 				return true
 
 			case "remove_shortage":
 			if IsFloat(value)
 				return true
 
-			case "fix_date":
-			strings := StrSplit(value, "/")
-			month := strings[1], day := strings[2], year := strings[3]
-			if StrLen(month) == 1 || StrLen(day) == 1 || StrLen(year) == 2
+			case "fix_date": ; can have 1-2 day digits, 1-2 month, and 2 or 4 year, but not 3
+			if !RegExMatch(value, "^\d\d/\d\d/\d\d\d\d$") 
+				&& RegExMatch(value, "^\d\d?/\d\d?/\d\d\d?\d?$") && !RegExMatch(value, "^\d\d?/\d\d?/\d\d\d$") {
 				return true
+				}
 
 			case "remove_comma":
 			if RegExMatch(value, ",")
@@ -650,17 +651,17 @@ onWrite(*) {
 		csvKeys := csvConcat(csvKeysArray)
 		csvValues := csvConcat(csvValuesArray)
 		csvOut := csvKeys . "`n" . csvValues
-		csvPath := (devMode ? ".\test\out_" : paths.csv_dir.value) . paths.csv_file.value
-		file := FileOpen(csvPath, "w") ; TODO: add path option
+		csvPath := (devMode ? ".\test\out_" : paths.csv_dir.gui.value) . paths.csv_file.value
+		file := FileOpen(csvPath, "w")
 		file.Write(csvOut)
 		file.Close()
 		clearBgsForWrite(labelData)
 	} catch as e {
-		MsgBox("An error ocurred during writing: `n" . e.Message)
+		MsgBox("An error ocurred during writing try path: " . csvPath . "`n" . e.Message)
 	}
 }
 readCsv(*) {
-	csvPath := (devMode ? ".\test\" : paths.csv_dir.value) . paths.csv_file.value
+	csvPath := (devMode ? ".\test\" : paths.csv_dir.gui.value) . paths.csv_file.value
 	try {
 		Loop read, csvPath {
 			line := A_Index
@@ -683,10 +684,16 @@ readCsv(*) {
 }
 
 changeDate(item, direction) {
+	if !RegExMatch(item.gui.value, "^\d\d?/\d\d?/\d\d\d?\d?$") {
+		return 
+	}
 	dates := StrSplit(item.gui.value, "/")
 	month := dates[1], day := dates[2], year := dates[3]
-	mFormat := "MM", dFormat := "dd", yFormat := "yyyy"
+	if (day == '0' || day == '00' || month == '0' || month == '00') {
+		return
+	}
 
+	mFormat := "MM", dFormat := "dd", yFormat := "yyyy"
 	if StrLen(month) == 1 {
 		month := '0' . month
 		mFormat := "M"
