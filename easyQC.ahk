@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 4 : 1
+DEFAULT_TAB := devMode ? 3 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -22,7 +22,7 @@ NAVY_BLUE := "4d6d9a"
 SOLAR_BLUE := "268bd2"
 LIGHT_ORANGE := "fed7aa"
 
-; GLOBAL VARIABLES
+; GLOBAL VARIABLES TODO: use object.base to setup options
 data := {
 	initials: { value: "..", displayName: "Initials" },
 	customer: { value: "<customer>", displayName: "Customer" },
@@ -99,8 +99,7 @@ onTabChange(Tab)
 
 myGui.OnEvent("Close", (*) => ExitApp)
 myGui.Show(Format(devMode ? "w{1} h{2} x{3} y{4}" : "w{1} h{2}",
-	WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0))
-;	WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
+	WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_X, WINDOW_Y))
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
@@ -117,7 +116,7 @@ setupForIni(items, section, hasPreviousValues := false) {
 	}
 }
 saveItem(item) {
-	switch (item.iniSection . "." . item.iniName) { ; TODO: restrict to data object
+	switch (item.iniSection . "." . item.iniName) {
 		case "main.order":
 		data.postOrder.gui.value := SubStr(item.gui.value, -4)
 		writeItem(data.postOrder)
@@ -561,9 +560,9 @@ canFix(item) {
 			if StrLen(month) == 1 || StrLen(day) == 1 || StrLen(year) == 2
 				return true
 
-			case "remove_shortage":
-
 			case "remove_comma":
+			if RegExMatch(value, ",")
+				return true
 		}
 	}
 	return false
@@ -683,6 +682,32 @@ readCsv(*) {
 	return 1
 }
 
+changeDate(item, direction) {
+	dates := StrSplit(item.gui.value, "/")
+	month := dates[1], day := dates[2], year := dates[3]
+	mFormat := "MM", dFormat := "dd", yFormat := "yyyy"
+
+	if StrLen(month) == 1 {
+		month := '0' . month
+		mFormat := "M"
+	}
+	if StrLen(day) == 1 {
+		day := '0' . day
+		dFormat := "d"
+	}
+	if StrLen(year) == 2 {
+		year := '20' . year
+		yFormat := "yy"
+	}
+	if StrLen(month) != 2 || StrLen(day) !== 2 || StrLen(year) != 4 {
+		return
+	}
+	format := mFormat . "/" . dFormat . "/" . yFormat
+
+	newDate := FormatTime(DateAdd(year . month . day, (direction == "up" ? 1 : -1), "days"), format)
+	item.gui.value := newDate
+	saveItem(item)
+}
 
 formatOptions(obj) {
 	str := "" 
@@ -736,6 +761,24 @@ formatOptions(obj) {
 ; ====================================== HOTKEYS ========================================
 ; =======================================================================================
 
+#HotIf (Tab.value == "3")
+~WheelUp:: {
+	if (Tab.value != 3) {
+		return
+	}
+	MouseGetPos(, , , &dateControl)
+	if dateControl == labelData.date.gui.ClassNN
+		changeDate(labelData.date, "up")
+}
+~WheelDown:: {
+	if (Tab.value != 3) {
+		return
+	}
+	MouseGetPos(, , , &dateControl)
+	if dateControl == labelData.date.gui.ClassNN
+		changeDate(labelData.date, "down")
+}
+
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
 ^1::onPrint()
 ^2::onSamplePrint()
@@ -763,10 +806,10 @@ onPrint(*) {
 }
 
 onSamplePrint(*) {
-	if (Tab.value != 2)
+	if (Tab.value != 2) {
 		return
-
-inputDataAndSleep(sampleData.initials.gui.value)
+	}
+	inputDataAndSleep(sampleData.initials.gui.value)
 	inputDataAndSleep(sampleData.customer.gui.value)
 	inputDataAndSleep(sampleData.order.gui.value)
 	inputDataAndSleep("") ; No upc
