@@ -1,4 +1,6 @@
-﻿#Requires AutoHotkey v2.0
+﻿;; TODO: fix Order Prefix changing
+
+#Requires AutoHotkey v2.0
 #SingleInstance force
 ; =======================================================================================
 ; ==================================== LOAD VARIABLES ===================================
@@ -13,7 +15,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 3 : 1
+DEFAULT_TAB := devMode ? 1 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -41,6 +43,7 @@ settings := {
 	quickOrder: { value: 0, displayName: "Quick Order" },
 	orderPrefix: { value: "20010", displayName: "Prefix" }, 
 	enableFixes: { value: 1, displayname: "Enable Label Fixing" },
+	enableSampleButtons: { value: 0, displayname: "Enable Sample Buttons" },
 }
 setupForIni(settings, "settings")
 
@@ -142,8 +145,10 @@ saveItem(item) {
 		updateQuickOrderVisibility()
 
 		case "settings.enableFixes":
-		;MsgBox("saving enable fixes")
 		updateFixVisibility()
+
+		case "settings.enableSampleButtons":
+		updateSampleButtonsVisibility()
 	}
 
 	if (item.iniSection == "label" && item.HasProp("fixButton"))
@@ -157,6 +162,11 @@ updateFixVisibility() {
 	for (key, item in labelData.OwnProps())
 		if item.HasProp("fixButton")
 			item.fixButton.Visible := settings.enableFixes.gui.value ? canFix(item) : false
+}
+updateSampleButtonsVisibility() {
+	for (key, item in [samplePlusButton, sampleMinusButton])
+		if item.HasProp("gui")
+			item.gui.Visible := settings.enableSampleButtons.gui.value
 }
 
 updateItemBg(item) {
@@ -278,7 +288,11 @@ setupMainTab(tabNum) {
 	buttonOpt := { xPrev: 0, yPrev: 20, width: 20, height: 20, stopTab: true}
 	fontOpt := { fontSize: 8 }
 	sampleMinusButton.gui := createButton(buttonOpt, "s-", (*) => addSample("minus"), fontOpt)
+
 	updateSampleButtons()
+	samplePlusButton.gui.Visible := settings.enableSampleButtons.value
+	sampleMinusButton.gui.Visible := settings.enableSampleButtons.value
+
 
 	; CLEAR BUTTON
 	buttonOpt := { xMargin: 288, yMargin: 275 + TAB_FONT_SIZE, width: 50, height: 20, stopTab: true}
@@ -415,6 +429,7 @@ setupLabelTab(tabNum) {
 
 setupSettingsTab(tabNum) {
 	Tab.UseTab(tabNum)
+	myGui.SetFont("s12")
 	myGui.MarginY := 5
 
 	myGui.AddGroupBox("w330 h310 cGray Section", "general")
@@ -450,8 +465,11 @@ setupSettingsTab(tabNum) {
 	opt := { xSection: 0, newSection: true, checked: settings.enableFixes.value }
 	createCheckbox(settings.enableFixes, opt, (*) => saveItem(settings.enableFixes))
 
+	opt := { xSection: 0, newSection: true, checked: settings.enableSampleButtons.value }
+	createCheckbox(settings.enableSampleButtons, opt, (*) => saveItem(settings.enableSampleButtons))
 
 	createDefaultEnterButton(tabNum)
+	myGui.SetFont("s14")
 	myGui.MarginY := 11
 }
 
