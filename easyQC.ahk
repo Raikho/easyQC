@@ -395,7 +395,7 @@ setupLabelTab(tabNum) {
 
 	; QTY
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
-	editOpt := { number: true, charLimit: 2, ySection: 0, width: 70, height: boxHeight }
+	editOpt := { number: true, charLimit: 6, ySection: 0, width: 70, height: boxHeight }
 	createEdit(labelData.quantity, textOpt, editOpt)
 	quickFixButtonSetup(labelData.quantity)
 
@@ -539,7 +539,14 @@ canFix(item) {
 		value := item.gui.value
 		switch fix {
 			case "add_apostrophe":
-			if RegExMatch(value, "^[0-9]{12}$")
+			regexString := ""
+			if item.displayName == "Order#"
+				regexString := "^[0-9]{9}$"
+			else if item.displayName == "UPC"
+				regexString := "^[0-9]{12}$"
+			else if item.displayName == "QC By"
+				regexString := "^[a-zA-Z]{2,3}$"
+			if RegExMatch(value, regexString)
 				return true
 
 			case "remove_apostrophe":
@@ -557,7 +564,8 @@ canFix(item) {
 
 			case "fix_date": ; can have 1-2 day digits, 1-2 month, and 2 or 4 year, but not 3
 			if !RegExMatch(value, "^\d\d/\d\d/\d\d\d\d$") 
-				&& RegExMatch(value, "^\d\d?/\d\d?/\d\d\d?\d?$") && !RegExMatch(value, "^\d\d?/\d\d?/\d\d\d$") {
+				&& RegExMatch(value, "^\d\d?/\d\d?/\d\d\d?\d?$")
+			&& !RegExMatch(value, "^\d\d?/\d\d?/\d\d\d$") {
 				return true
 				}
 
