@@ -22,7 +22,7 @@ NAVY_BLUE := "4d6d9a"
 SOLAR_BLUE := "268bd2"
 LIGHT_ORANGE := "fed7aa"
 PALE_ORANGE := "fdebd0"
-DARK_ORANGE := DARK_ORANGE := "b97e65" ;"94755c", af8561, 946a6c, 9d816c
+DARK_ORANGE := DARK_ORANGE := "d57d55" ;"94755c", af8561, 946a6c, 9d816c
 DARK_YELLOW := "99873e" ; d4ac0d
 
 ; GLOBAL VARIABLES TODO: use object.base to move more options to this section
@@ -82,6 +82,15 @@ setupForIni(paths, "paths")
 
 csv := { }
 defaultButtons := [{}, {}, {}, {}]
+
+history := { index: { value: 0} }
+Loop 10 {
+	i := A_Index - 1
+	for (key, item in ["initials", "customer", "order", "upc", "style", "roll", "time"]) {
+		history.%item . i% := { value: "" }
+	}
+}
+setupForIni(history, "history")
 
 ; =======================================================================================
 ; ===================================== CREATE GUI ======================================
@@ -204,10 +213,11 @@ updatePrevValues(items) {
 	}
 }
 
-writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName)
+writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName) 
 readItem(item) => IniRead("config.ini", item.iniSection, item.iniName, item.value)
 writeItemPrev(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, "prev_" . item.iniName)
 readItemPrev(item) => IniRead("config.ini", item.iniSection, "prev_" . item.iniName, item.value)
+writeHistory(item) => IniWrite(item.value, "config.ini", "history", item.iniName) 
 hasGui(item) => item.HasProp("gui")
 
 onTabChange(tabObj) {
@@ -224,6 +234,50 @@ clearItems(items) {
 		saveItem(item) ; TODO: find out why it's not saving roll clear
 	}
 	updatePrevValues(items)
+}
+
+showHistory(*) {
+	out := ""
+	fields := ["time", "initials", "customer", "order", "upc", "style", "roll"]
+	indicies := [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+
+	for i, v in indicies {
+		indicies[i] := Mod(indicies[i] + history.index.value, 10)
+	}
+
+	for i, index in indicies {
+		for j, field in fields {
+			item := history.%field . index%
+			out .= field . "`t : " . item.value . "`n"
+		}
+		out .= "`n"
+	}
+	msgBox(out)
+}
+
+saveHistory(fullOrder) {
+	i := history.index.value
+
+	initials := history.%'initials' . i%
+	customer := history.%'customer' . i%
+	order := history.%'order' . i%
+	upc := history.%'upc' . i%
+	style := history.%'style' . i%
+	roll := history.%'roll' . i%
+	time := history.%'time' . i%
+
+	initials.value := data.initials.gui.value
+	customer.value := data.customer.gui.value
+	order.value := fullOrder
+	upc.value := data.upc.gui.value
+	style.value := data.style.gui.value
+	roll.value := data.roll.gui.value
+	time.value := FormatTime()
+
+	history.index.value := Mod(history.index.value + 1, 10)
+	for index, item in [initials, customer, order, upc, style, roll, time, history.index] {
+		writeHistory(item)
+	}
 }
 
 setupGuiAppearance() {
@@ -309,6 +363,12 @@ setupMainTab(tabNum) {
 	buttonOpt := { xMargin: 288, yMargin: 275 + TAB_FONT_SIZE, width: 50, height: 20, stopTab: true}
 	fontOpt := { fontSize: 8 }
 	createButton(buttonOpt, "CLEAR", (*) => clearItems(data), fontOpt)
+
+	; HISTORY BUTTON
+	buttonOpt := { xMargin: 315, yMargin: 15 + TAB_FONT_SIZE, width: 45, height: 16, stopTab: true }
+	fontOpt := { fontSize: 7, fontName: "Consolas" }
+	createButton(buttonOpt, "history", (*) => showHistory(), fontOpt)
+
 
 	createDefaultEnterButton(tabNum)
 }
@@ -798,7 +858,6 @@ formatOptions(obj) {
 	if (obj.HasProp("stopTab") && obj.stopTab == true)
 		str .= "-TabStop" . " "
 
-
 	return str
 }
 
@@ -839,16 +898,29 @@ onPrint(*) {
 	else
 		return MsgBox("error parsing order number, something messed up")
 
-	inputDataAndSleep(data.initials.gui.value)
-	inputDataAndSleep(data.customer.gui.value)
-	inputDataAndSleep(order)
-	inputDataAndSleep(data.upc.gui.value)
-	inputDataAndSleep(data.style.gui.value)
-	inputDataAndSleep(data.roll.gui.value)
-	inputDataAndSleep("Y")
-	inputDataAndSleep("N")
-	inputDataAndSleep("Y")
+	Send("{Ctrl down}") ; todo: verify this fix works for ctrl key getting stuck
+	Send("{Ctrl up}")
+
+	status := [0,0,0,0,0,0,0,0,0]
+	status[1] := inputDataAndSleep(data.initials.gui.value)
+	status[2] := inputDataAndSleep(data.customer.gui.value)
+	status[3] := inputDataAndSleep(order)
+	status[4] := inputDataAndSleep(data.upc.gui.value)
+	status[5] := inputDataAndSleep(data.style.gui.value)
+	status[6] := inputDataAndSleep(data.roll.gui.value)
+	status[7] := inputDataAndSleep("Y")
+	status[8] := inputDataAndSleep("N")
+	status[9] := inputDataAndSleep("Y")
+
+	Send("{Ctrl down}") ; todo: verify this fix works for ctrl key getting stuck
+	Send("{Ctrl up}")
+
+    for index, value in status {
+		if !value
+			return
+    }
 	updatePrevValues(data)
+	saveHistory(order)
 }
 
 onSamplePrint(*) {
@@ -868,10 +940,11 @@ onSamplePrint(*) {
 inputDataAndSleep(obj) {
 	if !exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe")
 		&& !classActive("Notepad") {
-		return
+		return 0
 	}
 	SendInput(obj . "{enter}")
 	Sleep(settings.delay.gui.value)
+	return 1
 }
 
 exeActive(params*) {
