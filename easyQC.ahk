@@ -131,7 +131,7 @@ saveItem(item) {
 		data.order.gui.value := "20010" . item.gui.value
 		writeItem(data.order)
 
-		case "main.orderPrefix":
+		case "settings.orderPrefix":
 		data.preOrder.gui.value := item.gui.value
 		writeItem(data.preOrder)
 
@@ -446,7 +446,7 @@ setupSettingsTab(tabNum) {
 	createCheckbox(settings.quickOrder, opt, (*) => saveItem(settings.quickOrder))
 
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 80 }
+	editOpt := { charLimit: 5, ySection: 0, width: 80 }
 	createEdit(settings.orderPrefix, textOpt, editOpt)
 	updateQuickOrderVisibility()
 
