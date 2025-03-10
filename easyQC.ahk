@@ -1,6 +1,4 @@
-﻿;; TODO: fix Order Prefix changing
-
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 #SingleInstance force
 ; =======================================================================================
 ; ==================================== LOAD VARIABLES ===================================
@@ -23,19 +21,22 @@ PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
 SOLAR_BLUE := "268bd2"
 LIGHT_ORANGE := "fed7aa"
+PALE_ORANGE := "fdebd0"
+DARK_ORANGE := DARK_ORANGE := "b97e65" ;"94755c", af8561, 946a6c, 9d816c
+DARK_YELLOW := "99873e" ; d4ac0d
 
 ; GLOBAL VARIABLES TODO: use object.base to move more options to this section
 data := {
-	initials: { value: "..", displayName: "Initials" },
-	customer: { value: "<customer>", displayName: "Customer" },
+	initials: { value: "..", displayName: "Initials", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	customer: { value: "<customer>", displayName: "Customer", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	preOrder: { value: "20010", displayName: "Order" },
-	postOrder: { value: "....", displayName: "" },
-	order: { value: "20010....", displayName: "Order" },
-	upc: { value: "............", displayName: "UPC" },
-	style: { value: "....", displayName: "Style" },
-	roll: { value: "1", displayName: "Roll" },
+	postOrder: { value: "....", displayName: "", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	order: { value: "20010....", displayName: "Order", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	upc: { value: "............", displayName: "UPC", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	style: { value: "....", displayName: "Style", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	roll: { value: "1", displayName: "Roll", bg: NAVY_BLUE, bgChanged: DARK_ORANGE },
 }
-setupForIni(data, "main")
+setupForIni(data, "main", hasPreviousValues := true)
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
@@ -66,6 +67,7 @@ labelData := {
  	customer: { value: "<customer>", displayName: "Customer", index: 7, fixes: [] },
 }
 setupForIni(labelData, "label", hasPreviousValues := true)
+setupColors(labelData, PALE_BLUE, LIGHT_ORANGE)
 
 samplePlusButton := { }
 sampleMinusButton := { }
@@ -118,6 +120,13 @@ setupForIni(items, section, hasPreviousValues := false) {
 			item.prevValue := readItemPrev(item)
 	}
 }
+setupColors(items, bg, bgChanged) {
+	for (key, item in items.OwnProps()) {
+		item.bg := bg
+		item.bgChanged := bgChanged
+	}
+}
+
 saveItem(item) {
 	switch (item.iniSection . "." . item.iniName) {
 		case "main.order":
@@ -170,11 +179,11 @@ updateSampleButtonsVisibility() {
 }
 
 updateItemBg(item) {
-	if item.HasProp("prevValue") {
+	if item.HasProp("prevValue") && item.HasProp("bg") && item.gui.Enabled && item.gui.Visible {
 		if (StrCompare(item.gui.value, item.prevValue, 1))
-			item.gui.Opt("Background" . LIGHT_ORANGE)
+			item.gui.Opt("Background" . item.bgChanged)
 		else
-			item.gui.Opt("-Background")
+			item.gui.Opt("Background" . item.bg)
 		item.gui.Opt("+Redraw")
 	}
 }
@@ -191,6 +200,7 @@ updatePrevValues(items) {
 	for (key, item in items.OwnProps()) {
 		item.prevValue := item.gui.value
 		writeItemPrev(item)
+		updateItemBg(item)
 	}
 }
 
@@ -213,6 +223,7 @@ clearItems(items) {
 		item.gui.value := ""
 		saveItem(item) ; TODO: find out why it's not saving roll clear
 	}
+	updatePrevValues(items)
 }
 
 setupGuiAppearance() {
@@ -237,24 +248,24 @@ setupMainTab(tabNum) {
 
 	; INITIALS
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
-	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, background: PALE_BLUE }
+	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, background: data.initials.bg }
 	createEdit(data.initials, textOpt, editOpt)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 170, background: PALE_BLUE }
+	editOpt := { ySection: 0, width: 170, background: data.customer.bg }
 	createEdit(data.customer, textOpt, editOpt)
 
 	; ====================== ORDER / QUICK_ORDER ====================
 	; ===============================================================
 
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { number: true, charLimit: 9, ySection: 0, width: 130, background: PALE_BLUE }
+	editOpt := { number: true, charLimit: 9, ySection: 0, width: 130, background: data.order.bg }
 	createEdit(data.order, textOpt, editOpt)
 
 	editOpt := { number: true, charLimit: 5, xPrev: 0, ySection: 0, width: 82 }
 	createEditboxOnly(data.preOrder, editOpt)
-	editOpt := { number: true, charLimit: 4, xPrev: 100, ySection: 0, width: 70, background: PALE_BLUE }
+	editOpt := { number: true, charLimit: 4, xPrev: 100, ySection: 0, width: 70, background: data.postOrder.bg }
 	createEditboxOnly(data.postOrder, editOpt)
 
 	data.preOrder.gui.Enabled := false
@@ -265,18 +276,18 @@ setupMainTab(tabNum) {
 
 	; UPC
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { number: true, charLimit: 12, ySection: 0, width: 170, background: PALE_BLUE }
+	editOpt := { number: true, charLimit: 12, ySection: 0, width: 170, background: data.upc.bg }
 	createEdit(data.upc, textOpt, editOpt)
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { number: true, charLimit: 4, ySection: 0, width: 60, background: PALE_BLUE }
+	editOpt := { number: true, charLimit: 4, ySection: 0, width: 60, background: data.style.bg }
 	createEdit(data.style, textOpt, editOpt)
 	updateStyleLock()
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { charLimit: 5, ySection: 0, width: 70, background: NAVY_BLUE, center: True }
+	editOpt := { charLimit: 5, ySection: 0, width: 70, background: data.roll.bg, center: True }
 	fontOpt := { bold: true, foreground: PALE_BLUE, fontName: "Arial"}
 	createEdit(data.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", data.roll.value)
@@ -333,7 +344,7 @@ setupSamplesTab(tabNum) {
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { number: true, charLimit: 4, ySection: 0, width: 185 }
+	editOpt := { ySection: 0, width: 185 }
 	createEdit(sampleData.style, textOpt, editOpt)
 
 	; ROLL
@@ -629,6 +640,7 @@ addSample(type) {
 		rollNum := Round(rollNum - 0.1, 1)
 	}
 	data.roll.gui.value := rollNum
+	saveItem(data.roll)
 	updateSampleButtons()
 }
 
@@ -836,12 +848,12 @@ onPrint(*) {
 	inputDataAndSleep("Y")
 	inputDataAndSleep("N")
 	inputDataAndSleep("Y")
+	updatePrevValues(data)
 }
 
 onSamplePrint(*) {
-	if (Tab.value != 2) {
+	if (Tab.value != 2)
 		return
-	}
 	inputDataAndSleep(sampleData.initials.gui.value)
 	inputDataAndSleep(sampleData.customer.gui.value)
 	inputDataAndSleep(sampleData.order.gui.value)
@@ -854,7 +866,8 @@ onSamplePrint(*) {
 }
 
 inputDataAndSleep(obj) {
-	if classActive("XLMAIN", "Chrome_WidgetWin_1") {
+	if !exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe")
+		&& !classActive("Notepad") {
 		return
 	}
 	SendInput(obj . "{enter}")
