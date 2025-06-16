@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 1 : 1
+DEFAULT_TAB := devMode ? 2 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -49,10 +49,10 @@ settings := {
 setupForIni(settings, "settings")
 
 sampleData := {
-	initials: { value: "..", displayName: "Initials" },
-	customer: { value: "<customer>", displayName: "Customer" },
-	order: { value: "<order>", displayName: "Order" },
-	style: { value: "....", displayName: "Style" },
+	initials: { value: "ZZ", displayName: "Initials" },
+	customer: { value: "HILLMAN", displayName: "Customer" },
+	order: { value: "HILLMAN-1-1-25", displayName: "Order" },
+	style: { value: "TAGEOS 241 M7", displayName: "Style" },
 	roll: { value: "1", displayName: "Roll" },
 }
 setupForIni(sampleData, "samples")
@@ -814,6 +814,39 @@ changeDate(item, direction) {
 	saveItem(item)
 }
 
+changeSampleStyle(x, y, w, h, direction) {
+	if !RegExMatch(item.gui.value, "^\d\d?/\d\d?/\d\d\d?\d?$") {
+		return 
+	}
+	dates := StrSplit(item.gui.value, "/")
+	month := dates[1], day := dates[2], year := dates[3]
+	if (day == '0' || day == '00' || month == '0' || month == '00') {
+		return
+	}
+
+	mFormat := "MM", dFormat := "dd", yFormat := "yyyy"
+	if StrLen(month) == 1 {
+		month := '0' . month
+		mFormat := "M"
+	}
+	if StrLen(day) == 1 {
+		day := '0' . day
+		dFormat := "d"
+	}
+	if StrLen(year) == 2 {
+		year := '20' . year
+		yFormat := "yy"
+	}
+	if StrLen(month) != 2 || StrLen(day) !== 2 || StrLen(year) != 4 {
+		return
+	}
+	format := mFormat . "/" . dFormat . "/" . yFormat
+
+	newDate := FormatTime(DateAdd(year . month . day, (direction == "up" ? 1 : -1), "days"), format)
+	item.gui.value := newDate
+	saveItem(item)
+}
+
 formatOptions(obj) {
 	str := "" 
 	if (obj.HasProp("xPrev"))
@@ -865,22 +898,19 @@ formatOptions(obj) {
 ; ====================================== HOTKEYS ========================================
 ; =======================================================================================
 
-#HotIf (Tab.value == "3")
+#HotIf ( (Tab.value == "3") || (Tab.value == "2") )
 ~WheelUp:: {
-	if (Tab.value != 3) {
-		return
+	if (Tab.value == 3) {
+		if dateControl == labelData.date.gui.ClassNN
+			changeDate(labelData.date, "up")
 	}
-	MouseGetPos(, , , &dateControl)
-	if dateControl == labelData.date.gui.ClassNN
-		changeDate(labelData.date, "up")
 }
 ~WheelDown:: {
-	if (Tab.value != 3) {
-		return
+	if (Tab.value == 3) {
+		MouseGetPos(, , , &dateControl)
+		if dateControl == labelData.date.gui.ClassNN
+			changeDate(labelData.date, "down")
 	}
-	MouseGetPos(, , , &dateControl)
-	if dateControl == labelData.date.gui.ClassNN
-		changeDate(labelData.date, "down")
 }
 
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
