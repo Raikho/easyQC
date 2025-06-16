@@ -22,7 +22,7 @@ NAVY_BLUE := "4d6d9a"
 SOLAR_BLUE := "268bd2"
 LIGHT_ORANGE := "fed7aa"
 PALE_ORANGE := "fdebd0"
-DARK_ORANGE := DARK_ORANGE := "d57d55" ;"94755c", af8561, 946a6c, 9d816c
+DARK_ORANGE := "d57d55" ;"94755c", af8561, 946a6c, 9d816c
 DARK_YELLOW := "99873e" ; d4ac0d
 
 ; GLOBAL VARIABLES TODO: use object.base to move more options to this section
@@ -44,29 +44,27 @@ settings := {
 	quickOrder: { value: 0, displayName: "Quick Order" },
 	orderPrefix: { value: "20010", displayName: "Prefix" }, 
 	enableFixes: { value: 1, displayname: "Enable Label Fixing" },
-	enableSampleButtons: { value: 0, displayname: "Enable Sample Buttons" },
+	enableSampleButtons: { value: 0, displayname: "Enable Shortage Buttons" }, ; TODO: rename all "Sample" to "Shortage"
 }
 setupForIni(settings, "settings")
 
 sampleData := {
-	initials: { value: "ZZ", displayName: "Initials" },
-	customer: { value: "HILLMAN", displayName: "Customer" },
-	order:    { value: "HILLMAN-", displayName: "Order" },
-	date:     { value: "-1-1-25", displayName: "" },
-	styleBrand:   { value: "TAGEOS", displayName: "Style" },
-	styleInlay:   { value: "241", displayName: "" },
-	styleChip:    { value: "M7", displayName: "" },
-    styleExtra:   { value: "" , displayName: "" },
-	roll:     { value: "1", displayName: "Roll" },
+	initials:     { value: "ZZ", displayName: "Initials", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	customer:     { value: "HILLMAN", displayName: "Customer", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	order:        { value: "HILLMAN-", displayName: "Order" },
+	date:         { value: "-1-1-25", displayName: "", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	styleBrand:   { value: "TAGEOS", displayName: "Style", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	styleInlay:   { value: "241", displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	styleChip:    { value: "M7", displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+    styleExtra:   { value: "" , displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	roll:         { value: "1", displayName: "Roll", bg: PALE_BLUE, bgChanged: PALE_ORANGE, fg: "000000" },
 }
-setupForIni(sampleData, "samples")
+setupForIni(sampleData, "samples", hasPreviousValues := true)
 
-styleTable := {
-	brand: ["TAGOES", "PARAGON", "AVERY", "ARIZON", "CHECKPOINT", "HANA", "LABID", "SML"],
-	inlay: ["241", "261", "300", "402", "430", "450"],
-	chip: ["M7", "M8", "U9", "R6", "R6-P"],
-    extra: ["SONIC", "BURST", "LONGBOW", "ZERO MAX"],
-}
+sampleData.styleBrand.options := ["TAGEOS", "PARAGON", "AVERY", "ARIZON", "CHECKPOINT", "HANA", "BOINGTECH", "SML"]
+sampleData.styleInlay.options := ["241", "261", "300", "402", "430", "450", "67x21", "74x11", "5030"]
+sampleData.styleChip.options := ["M7", "M8", "U9", "R6", "R6-P"]
+sampleData.styleExtra.options := ["", "SKINNY", "NEL", "SONIC", "BURST", "LONGBOW", "MINIWEB", "ZERO MAX", "BLANK", "ENCODED"]
 
 labelData := {
 	order: { value: "'20010....", displayName: "Order#", index: 1, fixes: ["add_apostrophe"] },
@@ -82,6 +80,7 @@ setupColors(labelData, PALE_BLUE, LIGHT_ORANGE)
 
 samplePlusButton := { }
 sampleMinusButton := { }
+addStyleButton := { }
 
 paths := {
 	rfid_dir: { value: "C:\RFID\PROG\" },
@@ -168,6 +167,15 @@ saveItem(item) {
 		sampleData.order.gui.value := sampleData.customer.gui.value . "-"
 		writeItem(sampleData.order)
 
+		case "samples.styleBrand":
+		searchOptionsAndSetIndex(item)
+		case "samples.styleInlay":
+		searchOptionsAndSetIndex(item)
+		case "samples.styleChip":
+		searchOptionsAndSetIndex(item)
+		case "samples.styleExtra":
+		searchOptionsAndSetIndex(item)
+
 		case "main.roll": 
 		updateSampleButtons()
 
@@ -189,6 +197,24 @@ saveItem(item) {
 
 	writeItem(item)
 	updateItemBg(item)
+}
+
+isNewLabelStyle() {
+	sum := sampleData.styleBrand.index + sampleData.styleInlay.index
+	       + sampleData.styleChip.index + sampleData.styleExtra.index
+	return (sum == 0)
+}
+
+searchOptionsAndSetIndex(item) {
+	for index, value in item.options {
+		if (StrUpper(value) == StrUpper(item.gui.value)) {
+			item.index := index
+			addStyleButton.gui.Enabled := isNewLabelStyle()
+			return
+		}
+	}
+	item.index := 0
+	addStyleButton.gui.Enabled := isNewLabelStyle()
 }
 
 updateFixVisibility() {
@@ -249,6 +275,14 @@ clearItems(items) {
 		saveItem(item) ; TODO: find out why it's not saving roll clear
 	}
 	updatePrevValues(items)
+}
+
+addLabelStyle(sampleData) {
+	if (isNewLabelStyle()) {
+		tooltip("todo: add style to tables here")
+		; labelData.style.options := 0
+		addStyleButton.gui.Enabled := false
+	}
 }
 
 showHistory(*) {
@@ -405,12 +439,12 @@ setupSamplesTab(tabNum) {
 
 	; INITIALS 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
-	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, } 
+	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40 } 
 	createEdit(sampleData.initials, textOpt, editOpt)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true, noMulti: true }
-	editOpt := { ySection: 0, width: 207 }
+	editOpt := { ySection: 0, width: 207, background: sampleData.customer.bg }
 	createEdit(sampleData.customer, textOpt, editOpt)
  
 	; ORDER
@@ -420,28 +454,36 @@ setupSamplesTab(tabNum) {
 	createEdit(sampleData.order, textOpt, editOpt, fontOpt)
 	sampleData.order.gui.Enabled := false
 
-	editOpt := { xPrev: 122, ySection: 0, width: 85, noMulti: true }
+	editOpt := { xPrev: 122, ySection: 0, width: 85, noMulti: true, background: sampleData.date.bg  }
 	fontOpt := { fontSize: 12, fontName: "Consolas" }
 	createEditBoxOnly(sampleData.date, editOpt, fontOpt)
 
-	; STYLE
+	; STYLE - BRAND, INLAY, CHIP, EXTERA
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 100 }
-	createEdit(sampleData.styleBrand, textOpt, editOpt)
+	editOpt := { ySection: 0, width: 100, background: sampleData.styleBrand.bg }
+	fontOpt := { fontSize: 11, fontName: "Consolas" }
+	createEdit(sampleData.styleBrand, textOpt, editOpt, fontOpt)
 
-	editOpt := { xPrev: 101, ySection: 0, width: 55 }
+	editOpt := { xPrev: 101, ySection: 0, width: 55, noMulti: true, background: sampleData.styleInlay.bg }
+	fontOpt := { fontSize: 12, fontName: "Consolas" }
 	createEditBoxOnly(sampleData.styleInlay, editOpt, fontOpt)
 
-	editOpt := { xPrev: 56, ySection: 0, width: 50 }
+	editOpt := { xPrev: 56, ySection: 0, width: 50, noMulti: true, background: sampleData.styleChip.bg }
 	createEditBoxOnly(sampleData.styleChip, editOpt, fontOpt)
 
-	editOpt := { xSection: 108, ySection: 32, width: 140 }
+	editOpt := { xSection: 109, ySection: 32, width: 140, noMulti: true, background: sampleData.styleExtra.bg }
 	createEditBoxOnly(sampleData.styleExtra, editOpt, fontOpt)
+
+	; BUTTON: ADD_LABEL_STYLE 
+	buttonOpt := { xPrev: 163, yPrev: 6, width: 40, height: 20, stopTab: true}
+	fontOpt := { fontSize: 8 }
+	addStyleButton.gui := createButton(buttonOpt, "add", (*) => addLabelStyle(sampleData), fontOpt)
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { charLimit: 12, ySection: 0, width: 70 }
-	createEdit(sampleData.roll, textOpt, editOpt)
+	editOpt := { charLimit: 12, ySection: 0, width: 70, background: sampleData.roll.bg }
+	fontOpt := { fontSize: 14, fontName: "Arial", foreground: sampleData.roll.fg }
+	createEdit(sampleData.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
 
 	createDefaultEnterButton(tabNum)
@@ -850,6 +892,20 @@ changeDate(item, direction, delimiter := "/") {
 	saveItem(item)
 }
 
+changeSampleStyle(item, direction) {
+	searchOptionsAndSetIndex(item)
+	length := item.options.Length
+	newIndex := item.index + (direction == "up" ? 1 : -1)
+
+	if (newIndex > length)
+		newIndex := 1
+	else if (newIndex < 1)
+		newIndex := length
+
+	item.gui.value := item.options[newIndex]
+	saveItem(item)
+}
+
 formatOptions(obj) {
 	str := "" 
 	if (obj.HasProp("xPrev"))
@@ -921,6 +977,10 @@ formatOptions(obj) {
 		MouseGetPos(, , , &dateControl)
 		if (dateControl == sampleData.date.gui.ClassNN)
 			changeDate(sampleData.date, "up", "-")
+
+		for index, item in [sampleData.styleBrand, sampleData.styleInlay, sampleData.styleChip, sampleData.styleExtra]
+			if (dateControl == item.gui.ClassNN)
+				changeSampleStyle(item, "up")
 	}
 }
 ~WheelDown:: {
@@ -934,6 +994,10 @@ formatOptions(obj) {
 		if (dateControl == sampleData.date.gui.ClassNN)
 			changeDate(sampleData.date, "down", "-")
 	}
+
+		for index, item in [sampleData.styleBrand, sampleData.styleInlay, sampleData.styleChip, sampleData.styleExtra]
+			if (dateControl == item.gui.ClassNN)
+				changeSampleStyle(item, "down")
 }
 
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
@@ -977,22 +1041,37 @@ onPrint(*) {
 }
 
 onSamplePrint(*) {
-	if (Tab.value != 2)
+	if (Tab.value != 2) {
 		return
-	inputDataAndSleep(sampleData.initials.gui.value)
-	inputDataAndSleep(sampleData.customer.gui.value)
-	inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
-	inputDataAndSleep("") ; No upc
-	inputDataAndSleep(
+	}
+
+	Send("{Ctrl down}") ; todo: verify this fix works for ctrl key getting stuck
+	Send("{Ctrl up}")
+
+	status := [0,0,0,0,0,0,0,0,0]
+	status[1] := inputDataAndSleep(sampleData.initials.gui.value)
+	status[2] := inputDataAndSleep(sampleData.customer.gui.value)
+	status[3] := inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
+	status[4] := inputDataAndSleep("") ; No upc
+	status[5] := inputDataAndSleep(
 		sampleData.styleBrand.gui.value . " " . 
 		sampleData.styleInlay.gui.value . " " . 
 		sampleData.styleChip.gui.value  . 
 		(sampleData.styleExtra.gui.value != "" ? " " . sampleData.styleExtra.gui.value : "")
 	)
-	inputDataAndSleep(sampleData.roll.gui.value)
-	inputDataAndSleep("Y")
-	inputDataAndSleep("N")
-	inputDataAndSleep("Y")
+	status[6] := inputDataAndSleep(sampleData.roll.gui.value)
+	status[7] := inputDataAndSleep("Y")
+	status[8] := inputDataAndSleep("N")
+	status[9] := inputDataAndSleep("Y")
+
+	Send("{Ctrl down}") ; todo: verify this fix works for ctrl key getting stuck
+	Send("{Ctrl up}")
+
+    for index, value in status {
+		if !value
+			return
+    }
+	updatePrevValues(sampleData)
 }
 
 inputDataAndSleep(obj) {
