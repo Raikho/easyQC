@@ -54,6 +54,9 @@ sampleData := {
 	order:    { value: "HILLMAN-", displayName: "Order" },
 	date:     { value: "-1-1-25", displayName: "" },
 	style:    { value: "TAGEOS 241 M7", displayName: "Style" },
+	style1:   { value: "TAGEOS", displayName: "Style" },
+	style2:   { value: "241", displayName: "" },
+	style3:   { value: "M7", displayName: "" },
 	roll:     { value: "1", displayName: "Roll" },
 }
 setupForIni(sampleData, "samples")
@@ -399,25 +402,31 @@ setupSamplesTab(tabNum) {
 	createEdit(sampleData.initials, textOpt, editOpt)
 
 	; CUSTOMER
-	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 205 }
+	textOpt := { xSection: 0, newSection: true, noMulti: true }
+	editOpt := { ySection: 0, width: 207 }
 	createEdit(sampleData.customer, textOpt, editOpt)
 
 	; ORDER
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 95, justify: "Right", noMulti: true}
+	editOpt := { ySection: 0, width: 121, justify: "Left" , noMulti: true}
 	fontOpt := { fontSize: 11, fontName: "Consolas" }
 	createEdit(sampleData.order, textOpt, editOpt, fontOpt)
 	sampleData.order.gui.Enabled := false
 
-	editOpt := { xPrev: 100, ySection: 0, width: 105 }
-	fontOpt := { fontSize: 14, fontName: "Consolas" }
+	editOpt := { xPrev: 122, ySection: 0, width: 85, noMulti: true }
+	fontOpt := { fontSize: 12, fontName: "Consolas" }
 	createEditBoxOnly(sampleData.date, editOpt, fontOpt)
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 185 }
-	createEdit(sampleData.style, textOpt, editOpt)
+	editOpt := { ySection: 0, width: 100 }
+	createEdit(sampleData.style1, textOpt, editOpt)
+
+	editOpt := { xPrev: 101, ySection: 0, width: 55 }
+	createEditBoxOnly(sampleData.style2, editOpt, fontOpt)
+
+	editOpt := { xPrev: 56, ySection: 0, width: 50 }
+	createEditBoxOnly(sampleData.style3, editOpt, fontOpt)
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
@@ -962,9 +971,9 @@ onSamplePrint(*) {
 		return
 	inputDataAndSleep(sampleData.initials.gui.value)
 	inputDataAndSleep(sampleData.customer.gui.value)
-	inputDataAndSleep(sampleData.order.gui.value)
+	inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
 	inputDataAndSleep("") ; No upc
-	inputDataAndSleep(sampleData.style.gui.value)
+	inputDataAndSleep(sampleData.style1.gui.value . " " . sampleData.Style2.gui.value . " " . sampleData.Style3.gui.value)
 	inputDataAndSleep(sampleData.roll.gui.value)
 	inputDataAndSleep("Y")
 	inputDataAndSleep("N")
