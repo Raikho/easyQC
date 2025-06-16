@@ -53,13 +53,20 @@ sampleData := {
 	customer: { value: "HILLMAN", displayName: "Customer" },
 	order:    { value: "HILLMAN-", displayName: "Order" },
 	date:     { value: "-1-1-25", displayName: "" },
-	style:    { value: "TAGEOS 241 M7", displayName: "Style" },
-	style1:   { value: "TAGEOS", displayName: "Style" },
-	style2:   { value: "241", displayName: "" },
-	style3:   { value: "M7", displayName: "" },
+	styleBrand:   { value: "TAGEOS", displayName: "Style" },
+	styleInlay:   { value: "241", displayName: "" },
+	styleChip:    { value: "M7", displayName: "" },
+    styleExtra:   { value: "" , displayName: "" },
 	roll:     { value: "1", displayName: "Roll" },
 }
 setupForIni(sampleData, "samples")
+
+styleTable := {
+	brand: ["TAGOES", "PARAGON", "AVERY", "ARIZON", "CHECKPOINT", "HANA", "LABID", "SML"],
+	inlay: ["241", "261", "300", "402", "430", "450"],
+	chip: ["M7", "M8", "U9", "R6", "R6-P"],
+    extra: ["SONIC", "BURST", "LONGBOW", "ZERO MAX"],
+}
 
 labelData := {
 	order: { value: "'20010....", displayName: "Order#", index: 1, fixes: ["add_apostrophe"] },
@@ -394,7 +401,7 @@ updateStyleLock() {
 
 setupSamplesTab(tabNum) {
 	Tab.UseTab(tabNum)
-	myGui.AddGroupBox("w340 h240 cGreen Section", "sample data")
+	myGui.AddGroupBox("w340 h270 cGreen Section", "sample data")
 
 	; INITIALS 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
@@ -405,7 +412,7 @@ setupSamplesTab(tabNum) {
 	textOpt := { xSection: 0, newSection: true, noMulti: true }
 	editOpt := { ySection: 0, width: 207 }
 	createEdit(sampleData.customer, textOpt, editOpt)
-
+ 
 	; ORDER
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { ySection: 0, width: 121, justify: "Left" , noMulti: true}
@@ -420,13 +427,16 @@ setupSamplesTab(tabNum) {
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { ySection: 0, width: 100 }
-	createEdit(sampleData.style1, textOpt, editOpt)
+	createEdit(sampleData.styleBrand, textOpt, editOpt)
 
 	editOpt := { xPrev: 101, ySection: 0, width: 55 }
-	createEditBoxOnly(sampleData.style2, editOpt, fontOpt)
+	createEditBoxOnly(sampleData.styleInlay, editOpt, fontOpt)
 
 	editOpt := { xPrev: 56, ySection: 0, width: 50 }
-	createEditBoxOnly(sampleData.style3, editOpt, fontOpt)
+	createEditBoxOnly(sampleData.styleChip, editOpt, fontOpt)
+
+	editOpt := { xSection: 108, ySection: 32, width: 140 }
+	createEditBoxOnly(sampleData.styleExtra, editOpt, fontOpt)
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
@@ -973,7 +983,12 @@ onSamplePrint(*) {
 	inputDataAndSleep(sampleData.customer.gui.value)
 	inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
 	inputDataAndSleep("") ; No upc
-	inputDataAndSleep(sampleData.style1.gui.value . " " . sampleData.Style2.gui.value . " " . sampleData.Style3.gui.value)
+	inputDataAndSleep(
+		sampleData.styleBrand.gui.value . " " . 
+		sampleData.styleInlay.gui.value . " " . 
+		sampleData.styleChip.gui.value  . 
+		(sampleData.styleExtra.gui.value != "" ? " " . sampleData.styleExtra.gui.value : "")
+	)
 	inputDataAndSleep(sampleData.roll.gui.value)
 	inputDataAndSleep("Y")
 	inputDataAndSleep("N")
