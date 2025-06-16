@@ -200,9 +200,10 @@ saveItem(item) {
 }
 
 isNewLabelStyle() {
-	sum := sampleData.styleBrand.index + sampleData.styleInlay.index
-	       + sampleData.styleChip.index + sampleData.styleExtra.index
-	return (sum == 0)
+	return (sampleData.styleBrand.index == 0
+            || sampleData.styleInlay.index == 0
+            || sampleData.styleChip.index == 0
+            || sampleData.styleExtra.index == 0)
 }
 
 searchOptionsAndSetIndex(item) {
@@ -279,8 +280,14 @@ clearItems(items) {
 
 addLabelStyle(sampleData) {
 	if (isNewLabelStyle()) {
-		tooltip("todo: add style to tables here")
-		; labelData.style.options := 0
+		for i, v in [sampleData.styleBrand, sampleData.styleInlay, sampleData.styleChip, sampleData.styleExtra] {
+			searchOptionsAndSetIndex(v)
+
+			if (v.index == 0) {
+				v.options.Push(v.gui.value)
+				v.index := v.options.Length
+			}
+		}
 		addStyleButton.gui.Enabled := false
 	}
 }
@@ -478,6 +485,7 @@ setupSamplesTab(tabNum) {
 	buttonOpt := { xPrev: 163, yPrev: 6, width: 40, height: 20, stopTab: true}
 	fontOpt := { fontSize: 8 }
 	addStyleButton.gui := createButton(buttonOpt, "add", (*) => addLabelStyle(sampleData), fontOpt)
+	addStyleButton.gui.Enabled := false
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
