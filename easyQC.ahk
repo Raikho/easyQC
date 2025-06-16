@@ -51,9 +51,10 @@ setupForIni(settings, "settings")
 sampleData := {
 	initials: { value: "ZZ", displayName: "Initials" },
 	customer: { value: "HILLMAN", displayName: "Customer" },
-	order: { value: "HILLMAN-1-1-25", displayName: "Order" },
-	style: { value: "TAGEOS 241 M7", displayName: "Style" },
-	roll: { value: "1", displayName: "Roll" },
+	order:    { value: "HILLMAN-", displayName: "Order" },
+	date:     { value: "-1-1-25", displayName: "" },
+	style:    { value: "TAGEOS 241 M7", displayName: "Style" },
+	roll:     { value: "1", displayName: "Roll" },
 }
 setupForIni(sampleData, "samples")
 
@@ -152,6 +153,10 @@ saveItem(item) {
 		case "settings.orderPrefix":
 		data.preOrder.gui.value := item.gui.value
 		writeItem(data.preOrder)
+
+		case "samples.customer":
+		sampleData.order.gui.value := sampleData.customer.gui.value . "-"
+		writeItem(sampleData.order)
 
 		case "main.roll": 
 		updateSampleButtons()
@@ -386,21 +391,28 @@ updateStyleLock() {
 
 setupSamplesTab(tabNum) {
 	Tab.UseTab(tabNum)
-	myGui.AddGroupBox("w330 h240 cGreen Section", "sample data")
+	myGui.AddGroupBox("w340 h240 cGreen Section", "sample data")
 
-	; INITIALS
+	; INITIALS 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
-	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, }
+	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40, } 
 	createEdit(sampleData.initials, textOpt, editOpt)
 
 	; CUSTOMER
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 185 }
+	editOpt := { ySection: 0, width: 205 }
 	createEdit(sampleData.customer, textOpt, editOpt)
 
+	; ORDER
 	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 185 }
-	createEdit(sampleData.order, textOpt, editOpt)
+	editOpt := { ySection: 0, width: 95, justify: "Right", noMulti: true}
+	fontOpt := { fontSize: 11, fontName: "Consolas" }
+	createEdit(sampleData.order, textOpt, editOpt, fontOpt)
+	sampleData.order.gui.Enabled := false
+
+	editOpt := { xPrev: 100, ySection: 0, width: 105 }
+	fontOpt := { fontSize: 14, fontName: "Consolas" }
+	createEditBoxOnly(sampleData.date, editOpt, fontOpt)
 
 	; STYLE
 	textOpt := { xSection: 0, newSection: true }
@@ -550,8 +562,11 @@ createDefaultEnterButton(tabNum) {
 	defaultButtons[tabNum].onEvent("Click", (*) => SendInput("{Tab}"))
 }
 
-createEditboxOnly(item, editboxOptions) {
+createEditboxOnly(item, editboxOptions, fontOptions?) {
 	item.gui := myGui.AddEdit(formatOptions(editboxOptions), item.value)
+
+	if (IsSet(fontOptions))
+		item.gui.setFont(formatOptions(fontOptions), fontOptions.hasProp("fontName") ? fontOptions.fontName : "")
 
 	item.gui.onEvent("Change", (*) => saveItem(item))
 }
@@ -781,11 +796,13 @@ readCsv(*) {
 	return 1
 }
 
-changeDate(item, direction) {
-	if !RegExMatch(item.gui.value, "^\d\d?/\d\d?/\d\d\d?\d?$") {
+changeDate(item, direction, delimiter := "/") {
+    dlm := delimiter
+
+	if !RegExMatch(item.gui.value, "^\d\d?" . dlm . "\d\d?" . dlm . "\d\d\d?\d?$") {
 		return 
 	}
-	dates := StrSplit(item.gui.value, "/")
+	dates := StrSplit(item.gui.value, dlm)
 	month := dates[1], day := dates[2], year := dates[3]
 	if (day == '0' || day == '00' || month == '0' || month == '00') {
 		return
@@ -807,40 +824,7 @@ changeDate(item, direction) {
 	if StrLen(month) != 2 || StrLen(day) !== 2 || StrLen(year) != 4 {
 		return
 	}
-	format := mFormat . "/" . dFormat . "/" . yFormat
-
-	newDate := FormatTime(DateAdd(year . month . day, (direction == "up" ? 1 : -1), "days"), format)
-	item.gui.value := newDate
-	saveItem(item)
-}
-
-changeSampleStyle(x, y, w, h, direction) {
-	if !RegExMatch(item.gui.value, "^\d\d?/\d\d?/\d\d\d?\d?$") {
-		return 
-	}
-	dates := StrSplit(item.gui.value, "/")
-	month := dates[1], day := dates[2], year := dates[3]
-	if (day == '0' || day == '00' || month == '0' || month == '00') {
-		return
-	}
-
-	mFormat := "MM", dFormat := "dd", yFormat := "yyyy"
-	if StrLen(month) == 1 {
-		month := '0' . month
-		mFormat := "M"
-	}
-	if StrLen(day) == 1 {
-		day := '0' . day
-		dFormat := "d"
-	}
-	if StrLen(year) == 2 {
-		year := '20' . year
-		yFormat := "yy"
-	}
-	if StrLen(month) != 2 || StrLen(day) !== 2 || StrLen(year) != 4 {
-		return
-	}
-	format := mFormat . "/" . dFormat . "/" . yFormat
+	format := mFormat . dlm . dFormat . dlm . yFormat
 
 	newDate := FormatTime(DateAdd(year . month . day, (direction == "up" ? 1 : -1), "days"), format)
 	item.gui.value := newDate
@@ -861,6 +845,15 @@ formatOptions(obj) {
 		str .= "xm" . "+" . obj.xMargin . " "
 	if (obj.HasProp("yMargin")) 
 		str .= "ym" . obj.yMargin . " "
+
+	if (obj.HasProp("justify"))
+		str .= obj.justify . " "
+	if (obj.HasProp("noWrap"))
+		str .= "-Wrap "
+	if (obj.HasProp("noMulti"))
+		str .= "-Multi r1 "
+	
+
 
 	if (obj.HasProp("width"))
 		str .= "w" . obj.width . " "
@@ -901,15 +894,26 @@ formatOptions(obj) {
 #HotIf ( (Tab.value == "3") || (Tab.value == "2") )
 ~WheelUp:: {
 	if (Tab.value == 3) {
-		if dateControl == labelData.date.gui.ClassNN
-			changeDate(labelData.date, "up")
+		MouseGetPos(, , , &dateControl)
+		if (dateControl == labelData.date.gui.ClassNN)
+			changeDate(labelData.date, "up", "/")
+	}
+	if (Tab.value == 2) {
+		MouseGetPos(, , , &dateControl)
+		if (dateControl == sampleData.date.gui.ClassNN)
+			changeDate(sampleData.date, "up", "-")
 	}
 }
 ~WheelDown:: {
 	if (Tab.value == 3) {
 		MouseGetPos(, , , &dateControl)
-		if dateControl == labelData.date.gui.ClassNN
-			changeDate(labelData.date, "down")
+		if (dateControl == labelData.date.gui.ClassNN)
+			changeDate(labelData.date, "down", "/")
+	}
+	if (Tab.value == 2) {
+		MouseGetPos(, , , &dateControl)
+		if (dateControl == sampleData.date.gui.ClassNN)
+			changeDate(sampleData.date, "down", "-")
 	}
 }
 
