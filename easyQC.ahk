@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 2 : 1
+DEFAULT_TAB := devMode ? 2 : 2
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -24,6 +24,8 @@ LIGHT_ORANGE := "fed7aa"
 PALE_ORANGE := "fdebd0"
 DARK_ORANGE := "d57d55" ;"94755c", af8561, 946a6c, 9d816c
 DARK_YELLOW := "99873e" ; d4ac0d
+SLATE := "94a3b8"
+LIGHT_STONE := "e7e5e4"
 
 ; GLOBAL VARIABLES TODO: use object.base to move more options to this section
 data := {
@@ -50,16 +52,81 @@ setupForIni(settings, "settings")
 
 sampleData := {
 	initials:     { value: "ZZ", displayName: "Initials", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	roll:         { value: "1", displayName: "Roll #", bg: PALE_BLUE, bgChanged: PALE_ORANGE, fg: "000000" },
 	customer:     { value: "HILLMAN", displayName: "Customer", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	order:        { value: "HILLMAN-", displayName: "Order" },
 	date:         { value: "-1-1-25", displayName: "", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	style:        { value: "TAGEOS", displayName: "Style", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	styleBrand:   { value: "TAGEOS", displayName: "Style", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	styleInlay:   { value: "241", displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	styleChip:    { value: "M7", displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
     styleExtra:   { value: "" , displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
-	roll:         { value: "1", displayName: "Roll", bg: PALE_BLUE, bgChanged: PALE_ORANGE, fg: "000000" },
+	rollId:       { value: "Hillm001", displayName: "Roll Id", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
+	styleFilter:  { value: 0},
 }
 setupForIni(sampleData, "samples", hasPreviousValues := true)
+
+
+sampleData.styleFilter.titles := ["All", "Tageos", "Paragon", "Arizon", "Avery",
+"430", "402", "430", "300", "261", "241", "M7", "M8", "R6", "U8", "U9"]
+
+inlays := {}
+for i, v in sampleData.styleFilter.titles {
+	inlays.DefineProp(v, { value: Array()})
+}
+inlays.names := []
+
+inlays.All := [
+    { name: "Tageos 241 M7",          brand: "Tageos",  inlay: "241", chip: "M7" },
+    { name: "Tageos 241 M8",          brand: "Tageos",  inlay: "241", chip: "M8" },
+    { name: "Tageos 241 U9",          brand: "Tageos",  inlay: "241", chip: "U9" },
+    { name: "Tageos 261 M7",          brand: "Tageos",  inlay: "261", chip: "M7" },
+    { name: "Tageos 261 M8",          brand: "Tageos",  inlay: "261", chip: "M8" },
+    { name: "Tageos 261 U9",          brand: "Tageos",  inlay: "261", chip: "U9" },
+    { name: "Tageos 300 M7",          brand: "Tageos",  inlay: "300", chip: "M7" },
+    { name: "Tageos 300 R6",          brand: "Tageos",  inlay: "300", chip: "R6" },
+	{ name: "Tageos 300 U8",          brand: "Tageos",  inlay: "300", chip: "U8" },
+    { name: "Tageos 300 U9 Zero Max", brand: "Tageos",  inlay: "300", chip: "U9" },
+    { name: "Tageos 300 U9",          brand: "Tageos",  inlay: "300", chip: "U9" },
+    { name: "Tageos 402 R6",          brand: "Tageos",  inlay: "402", chip: "R6" },
+    { name: "Tageos 402 R6-P",        brand: "Tageos",  inlay: "402", chip: "R6" },
+    { name: "Tageos 430 M7",          brand: "Tageos",  inlay: "430", chip: "M7" },
+    { name: "Tageos 430 M8",          brand: "Tageos",  inlay: "430", chip: "M8" },
+    { name: "Tageos 430 U9",          brand: "Tageos",  inlay: "430", chip: "U9" },
+    { name: "Arizon 300 M7",          brand: "Arizon",  inlay: "300", chip: "M7" },
+    { name: "Arizon 300 M8",          brand: "Arizon",  inlay: "300", chip: "M8" },
+    { name: "Arizon 430 M7",          brand: "Arizon",  inlay: "430", chip: "M7" },
+    { name: "Arizon 430 M8",          brand: "Arizon",  inlay: "430", chip: "M8" },
+    { name: "Paragon 261 M7",         brand: "Paragon", inlay: "261", chip: "M7" },
+    { name: "Paragon 300 M7",         brand: "Paragon", inlay: "300", chip: "M7" },
+    { name: "Paragon 300 R6-P",       brand: "Paragon", inlay: "300", chip: "R6" },
+    { name: "Paragon 402 R6-P",       brand: "Paragon", inlay: "402", chip: "R6" },
+    { name: "Paragon 430 M7",         brand: "Paragon", inlay: "430", chip: "M7" },
+    { name: "Avery 241 M7",           brand: "Avery",   inlay: "241", chip: "M7" },
+    { name: "Avery 241 M8",           brand: "Avery",   inlay: "241", chip: "M8" },
+    { name: "Avery 261 M8 Sonic",     brand: "Avery",   inlay: "261", chip: "M8" },
+    { name: "Avery 261 U9 Sonic",     brand: "Avery",   inlay: "261", chip: "U9" },
+    { name: "Avery 300 M7",           brand: "Avery",   inlay: "300", chip: "M7" },
+    { name: "Avery 300 U9",           brand: "Avery",   inlay: "300", chip: "U9" },
+    { name: "Avery 402 M7",           brand: "Avery",   inlay: "402", chip: "M7" },
+    { name: "Avery 402 M8 Burst",     brand: "Avery",   inlay: "402", chip: "M8" },
+    { name: "Avery 402 U9",           brand: "Avery",   inlay: "402", chip: "U9" },
+    { name: "Avery 430 U9 Longbow",   brand: "Avery",   inlay: "430", chip: "U9" },
+]
+
+for i, inlay in inlays.All {
+		inlays.names.Push(inlay.name)
+		inlays.%inlay.brand%.Push(inlay.name)
+		inlays.%inlay.inlay%.Push(inlay.name)
+		inlays.%inlay.chip%.Push(inlay.name)
+}
+
+;out := "output: `n"
+;for i, name in inlays.Tageos {
+;	out .= name . "`n"
+;}
+;MsgBox(out)
+
 
 sampleData.styleBrand.options := ["TAGEOS", "PARAGON", "AVERY", "ARIZON", "CHECKPOINT", "HANA", "BOINGTECH", "SML"]
 sampleData.styleInlay.options := ["241", "261", "300", "402", "430", "450", "67x21", "74x11", "5030"]
@@ -442,7 +509,7 @@ updateStyleLock() {
 
 setupSamplesTab(tabNum) {
 	Tab.UseTab(tabNum)
-	myGui.AddGroupBox("w340 h270 cGreen Section", "sample data")
+	myGui.AddGroupBox("w340 h310 cGreen Section", "sample data")
 
 	; INITIALS 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
@@ -464,6 +531,17 @@ setupSamplesTab(tabNum) {
 	editOpt := { xPrev: 122, ySection: 0, width: 85, noMulti: true, background: sampleData.date.bg  }
 	fontOpt := { fontSize: 12, fontName: "Consolas" }
 	createEditBoxOnly(sampleData.date, editOpt, fontOpt)
+
+
+	; ORIGINAL STYLE
+	textOpt := { xSection: 0, newSection: true, noMulti: true }
+	editOpt := { ySection: 0, width: 180, background: sampleData.style.bg }
+	myGui.AddText(formatOptions(textOpt), "    Style:")
+	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
+
+
+	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), inlays.names)
+	sampleData.style.gui.setFont(formatOptions(fontOpt), fontOpt.fontName)
 
 	; STYLE - BRAND, INLAY, CHIP, EXTERA
 	textOpt := { xSection: 0, newSection: true }
@@ -493,6 +571,25 @@ setupSamplesTab(tabNum) {
 	fontOpt := { fontSize: 14, fontName: "Arial", foreground: sampleData.roll.fg }
 	createEdit(sampleData.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
+
+	; CUSTOMER
+	textOpt := { xSection: 0, newSection: true, noMulti: true }
+	editOpt := { ySection: 0, width: 207, background: sampleData.rollId.bg }
+	createEdit(sampleData.rollId, textOpt, editOpt)
+
+	; DROPDOWN:
+	textOpt := { xSection: 85, newSection: true }
+	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE }
+	tempText := myGui.AddText(formatOptions(textOpt), "Style Filter")
+	tempText.setFont(formatOptions(fontOpt))
+
+	editOpt := 	{ xPrev: 90, ySection: -2, width: 140, background: LIGHT_STONE, stopTab: true }
+	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
+
+	sampleData.styleFilter.gui := myGui.AddDropDownList(formatOptions(editOpt), sampleData.styleFilter.titles)
+;	sampleData.styleFilter.gui.onEvent("Change", (*) => MsgBox(sampleData.StyleFilter.gui.value)) ; TODO: dont need?
+	sampleData.styleFilter.gui.setFont(formatOptions(fontOpt), fontOpt.hasProp("fontName") ? fontOpt.fontName : "")
+
 
 	createDefaultEnterButton(tabNum)
 }
