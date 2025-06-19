@@ -57,15 +57,10 @@ sampleData := {
 	order:        { value: "HILLMAN-", displayName: "Order" },
 	date:         { value: "-1-1-25", displayName: "", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	style:        { value: "TAGEOS", displayName: "Style", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
-	styleBrand:   { value: "TAGEOS", displayName: "Style", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
-	styleInlay:   { value: "241", displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
-	styleChip:    { value: "M7", displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
-    styleExtra:   { value: "" , displayName: "", index: 0, bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	rollId:       { value: "Hillm001", displayName: "Roll Id", bg: PALE_BLUE, bgChanged: PALE_ORANGE },
 	styleFilter:  { value: 0},
 }
 setupForIni(sampleData, "samples", hasPreviousValues := true)
-
 
 sampleData.styleFilter.titles := ["All", "Tageos", "Paragon", "Arizon", "Avery",
 "430", "402", "430", "300", "261", "241", "M7", "M8", "R6", "U8", "U9"]
@@ -126,12 +121,6 @@ for i, inlay in inlays.All {
 ;	out .= name . "`n"
 ;}
 ;MsgBox(out)
-
-
-sampleData.styleBrand.options := ["TAGEOS", "PARAGON", "AVERY", "ARIZON", "CHECKPOINT", "HANA", "BOINGTECH", "SML"]
-sampleData.styleInlay.options := ["241", "261", "300", "402", "430", "450", "67x21", "74x11", "5030"]
-sampleData.styleChip.options := ["M7", "M8", "U9", "R6", "R6-P"]
-sampleData.styleExtra.options := ["", "SKINNY", "NEL", "SONIC", "BURST", "LONGBOW", "MINIWEB", "ZERO MAX", "BLANK", "ENCODED"]
 
 labelData := {
 	order: { value: "'20010....", displayName: "Order#", index: 1, fixes: ["add_apostrophe"] },
@@ -234,15 +223,6 @@ saveItem(item) {
 		sampleData.order.gui.value := sampleData.customer.gui.value . "-"
 		writeItem(sampleData.order)
 
-		case "samples.styleBrand":
-		searchOptionsAndSetIndex(item)
-		case "samples.styleInlay":
-		searchOptionsAndSetIndex(item)
-		case "samples.styleChip":
-		searchOptionsAndSetIndex(item)
-		case "samples.styleExtra":
-		searchOptionsAndSetIndex(item)
-
 		case "main.roll": 
 		updateSampleButtons()
 
@@ -264,25 +244,6 @@ saveItem(item) {
 
 	writeItem(item)
 	updateItemBg(item)
-}
-
-isNewLabelStyle() {
-	return (sampleData.styleBrand.index == 0
-            || sampleData.styleInlay.index == 0
-            || sampleData.styleChip.index == 0
-            || sampleData.styleExtra.index == 0)
-}
-
-searchOptionsAndSetIndex(item) {
-	for index, value in item.options {
-		if (StrUpper(value) == StrUpper(item.gui.value)) {
-			item.index := index
-			addStyleButton.gui.Enabled := isNewLabelStyle()
-			return
-		}
-	}
-	item.index := 0
-	addStyleButton.gui.Enabled := isNewLabelStyle()
 }
 
 updateFixVisibility() {
@@ -329,6 +290,20 @@ readItemPrev(item) => IniRead("config.ini", item.iniSection, "prev_" . item.iniN
 writeHistory(item) => IniWrite(item.value, "config.ini", "history", item.iniName) 
 hasGui(item) => item.HasProp("gui")
 
+onStyleFilterChange(*) {
+	value := sampleData.styleFilter.gui.text
+
+	sampleData.style.gui.Delete()
+	names := []
+	for i, inlay in inlays.All {
+		if (inlay.brand == value || inlay.inlay == value || inlay.chip == value) {
+			names.Push(inlay.name)
+			continue
+		}
+	}
+	sampleData.style.gui.Add(names)
+}
+
 onTabChange(tabObj) {
 	statusBar.SetText(tabStatusMessages[tabObj.Value])
 	tabNum := tabObj.value
@@ -343,20 +318,6 @@ clearItems(items) {
 		saveItem(item) ; TODO: find out why it's not saving roll clear
 	}
 	updatePrevValues(items)
-}
-
-addLabelStyle(sampleData) {
-	if (isNewLabelStyle()) {
-		for i, v in [sampleData.styleBrand, sampleData.styleInlay, sampleData.styleChip, sampleData.styleExtra] {
-			searchOptionsAndSetIndex(v)
-
-			if (v.index == 0) {
-				v.options.Push(v.gui.value)
-				v.index := v.options.Length
-			}
-		}
-		addStyleButton.gui.Enabled := false
-	}
 }
 
 showHistory(*) {
@@ -536,34 +497,12 @@ setupSamplesTab(tabNum) {
 	; ORIGINAL STYLE
 	textOpt := { xSection: 0, newSection: true, noMulti: true }
 	editOpt := { ySection: 0, width: 180, background: sampleData.style.bg }
-	myGui.AddText(formatOptions(textOpt), "    Style:")
+	myGui.AddText(formatOptions(textOpt), "   Style:")
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
 
 
 	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), inlays.names)
 	sampleData.style.gui.setFont(formatOptions(fontOpt), fontOpt.fontName)
-
-	; STYLE - BRAND, INLAY, CHIP, EXTERA
-	textOpt := { xSection: 0, newSection: true }
-	editOpt := { ySection: 0, width: 100, background: sampleData.styleBrand.bg }
-	fontOpt := { fontSize: 11, fontName: "Consolas" }
-	createEdit(sampleData.styleBrand, textOpt, editOpt, fontOpt)
-
-	editOpt := { xPrev: 101, ySection: 0, width: 55, noMulti: true, background: sampleData.styleInlay.bg }
-	fontOpt := { fontSize: 12, fontName: "Consolas" }
-	createEditBoxOnly(sampleData.styleInlay, editOpt, fontOpt)
-
-	editOpt := { xPrev: 56, ySection: 0, width: 50, noMulti: true, background: sampleData.styleChip.bg }
-	createEditBoxOnly(sampleData.styleChip, editOpt, fontOpt)
-
-	editOpt := { xSection: 109, ySection: 32, width: 140, noMulti: true, background: sampleData.styleExtra.bg }
-	createEditBoxOnly(sampleData.styleExtra, editOpt, fontOpt)
-
-	; BUTTON: ADD_LABEL_STYLE 
-	buttonOpt := { xPrev: 163, yPrev: 6, width: 40, height: 20, stopTab: true}
-	fontOpt := { fontSize: 8 }
-	addStyleButton.gui := createButton(buttonOpt, "add", (*) => addLabelStyle(sampleData), fontOpt)
-	addStyleButton.gui.Enabled := false
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true }
@@ -587,9 +526,8 @@ setupSamplesTab(tabNum) {
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
 
 	sampleData.styleFilter.gui := myGui.AddDropDownList(formatOptions(editOpt), sampleData.styleFilter.titles)
-;	sampleData.styleFilter.gui.onEvent("Change", (*) => MsgBox(sampleData.StyleFilter.gui.value)) ; TODO: dont need?
+	sampleData.styleFilter.gui.onEvent("Change", (*) => onStyleFilterChange())
 	sampleData.styleFilter.gui.setFont(formatOptions(fontOpt), fontOpt.hasProp("fontName") ? fontOpt.fontName : "")
-
 
 	createDefaultEnterButton(tabNum)
 }
@@ -997,20 +935,6 @@ changeDate(item, direction, delimiter := "/") {
 	saveItem(item)
 }
 
-changeSampleStyle(item, direction) {
-	searchOptionsAndSetIndex(item)
-	length := item.options.Length
-	newIndex := item.index + (direction == "up" ? 1 : -1)
-
-	if (newIndex > length)
-		newIndex := 1
-	else if (newIndex < 1)
-		newIndex := length
-
-	item.gui.value := item.options[newIndex]
-	saveItem(item)
-}
-
 formatOptions(obj) {
 	str := "" 
 	if (obj.HasProp("xPrev"))
@@ -1082,10 +1006,6 @@ formatOptions(obj) {
 		MouseGetPos(, , , &dateControl)
 		if (dateControl == sampleData.date.gui.ClassNN)
 			changeDate(sampleData.date, "up", "-")
-
-		for index, item in [sampleData.styleBrand, sampleData.styleInlay, sampleData.styleChip, sampleData.styleExtra]
-			if (dateControl == item.gui.ClassNN)
-				changeSampleStyle(item, "up")
 	}
 }
 ~WheelDown:: {
@@ -1099,10 +1019,6 @@ formatOptions(obj) {
 		if (dateControl == sampleData.date.gui.ClassNN)
 			changeDate(sampleData.date, "down", "-")
 	}
-
-		for index, item in [sampleData.styleBrand, sampleData.styleInlay, sampleData.styleChip, sampleData.styleExtra]
-			if (dateControl == item.gui.ClassNN)
-				changeSampleStyle(item, "down")
 }
 
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
@@ -1158,12 +1074,7 @@ onSamplePrint(*) {
 	status[2] := inputDataAndSleep(sampleData.customer.gui.value)
 	status[3] := inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
 	status[4] := inputDataAndSleep("") ; No upc
-	status[5] := inputDataAndSleep(
-		sampleData.styleBrand.gui.value . " " . 
-		sampleData.styleInlay.gui.value . " " . 
-		sampleData.styleChip.gui.value  . 
-		(sampleData.styleExtra.gui.value != "" ? " " . sampleData.styleExtra.gui.value : "")
-	)
+	status[5] := inputDataAndSleep(sampleData.brand.gui.value)
 	status[6] := inputDataAndSleep(sampleData.roll.gui.value)
 	status[7] := inputDataAndSleep("Y")
 	status[8] := inputDataAndSleep("N")
