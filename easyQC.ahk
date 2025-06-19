@@ -470,20 +470,20 @@ updateStyleLock() {
 
 setupSamplesTab(tabNum) {
 	Tab.UseTab(tabNum)
-	myGui.AddGroupBox("w340 h310 cGreen Section", "sample data")
+	myGui.AddGroupBox("w340 h235 cGreen Section", "sample data")
 
 	; INITIALS 
-	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
+	textOpt := { xPrev: 20, yPrev: 25, newSection: true }
 	editOpt := { uppercase: true, charLimit: 2, ySection: 0, width: 40 } 
 	createEdit(sampleData.initials, textOpt, editOpt)
 
 	; CUSTOMER
-	textOpt := { xSection: 0, newSection: true, noMulti: true }
+	textOpt := { yPrev: 30, xSection: 0, newSection: true, noMulti: true }
 	editOpt := { ySection: 0, width: 207, background: sampleData.customer.bg }
 	createEdit(sampleData.customer, textOpt, editOpt)
  
 	; ORDER
-	textOpt := { xSection: 0, newSection: true }
+	textOpt := { yPrev: 30, xSection: 0, newSection: true }
 	editOpt := { ySection: 0, width: 121, justify: "Left" , noMulti: true}
 	fontOpt := { fontSize: 11, fontName: "Consolas" }
 	createEdit(sampleData.order, textOpt, editOpt, fontOpt)
@@ -495,7 +495,7 @@ setupSamplesTab(tabNum) {
 
 
 	; ORIGINAL STYLE
-	textOpt := { xSection: 0, newSection: true, noMulti: true }
+	textOpt := { yPrev: 30, xSection: 0, newSection: true, noMulti: true }
 	editOpt := { ySection: 0, width: 180, background: sampleData.style.bg }
 	myGui.AddText(formatOptions(textOpt), "   Style:")
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
@@ -505,19 +505,19 @@ setupSamplesTab(tabNum) {
 	sampleData.style.gui.setFont(formatOptions(fontOpt), fontOpt.fontName)
 
 	; ROLL
-	textOpt := { xSection: 0, newSection: true }
+	textOpt := { yPrev: 30, xSection: 0, newSection: true }
 	editOpt := { charLimit: 12, ySection: 0, width: 70, background: sampleData.roll.bg }
 	fontOpt := { fontSize: 14, fontName: "Arial", foreground: sampleData.roll.fg }
 	createEdit(sampleData.roll, textOpt, editOpt, fontOpt)
 	myGui.AddUpDown("Range1-200 Wrap", sampleData.roll.value)
 
-	; CUSTOMER
-	textOpt := { xSection: 0, newSection: true, noMulti: true }
+	; ROLL ID
+	textOpt := { yPrev: 30, xSection: 0, newSection: true, noMulti: true }
 	editOpt := { ySection: 0, width: 207, background: sampleData.rollId.bg }
 	createEdit(sampleData.rollId, textOpt, editOpt)
 
-	; DROPDOWN:
-	textOpt := { xSection: 85, newSection: true }
+	; STYLE_FILTER
+	textOpt := { yPrev: 30, xSection: 85, newSection: true }
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE }
 	tempText := myGui.AddText(formatOptions(textOpt), "Style Filter")
 	tempText.setFont(formatOptions(fontOpt))
@@ -528,6 +528,45 @@ setupSamplesTab(tabNum) {
 	sampleData.styleFilter.gui := myGui.AddDropDownList(formatOptions(editOpt), sampleData.styleFilter.titles)
 	sampleData.styleFilter.gui.onEvent("Change", (*) => onStyleFilterChange())
 	sampleData.styleFilter.gui.setFont(formatOptions(fontOpt), fontOpt.hasProp("fontName") ? fontOpt.fontName : "")
+
+	; CHECKBOXES
+	myGui.AddGroupBox("xm12 yp30 w330 h85 cGray Section", "filters")
+
+	checkboxes := [{ name: "Tageos" }, { name: "Paragon" }, { name: "Arizon" }, { name: "Avery" },
+	{ name: "241" }, { name: "261" }, { name: "300" }, { name: "402" }, { name: "430" },
+	{ name: "M7" }, { name: "M8" }, { name: "R6" }, { name: "U8" }, { name: "U9" },
+	]
+
+	formattedOpt := FormatOptions({ width: 70, xSection: 10, yPrev: 20, noMulti: true, stopTab: True })
+	checkboxes[1].gui := myGui.addCheckBox(formattedOpt . "Section", checkboxes[1].name)
+
+	formattedOpt := FormatOptions({ width: 70,  ySection: 0, noMulti: true, stopTab: True })
+	checkboxes[2].gui := myGui.addCheckBox(formattedOpt, checkboxes[2].name)
+	checkboxes[3].gui := myGui.addCheckBox(formattedOpt, checkboxes[3].name)
+	checkboxes[4].gui := myGui.addCheckBox(formattedOpt, checkboxes[4].name)
+
+	formattedOpt := FormatOptions({ width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True })
+	checkboxes[5].gui := myGui.addCheckBox(formattedOpt, checkboxes[5].name)
+
+	formattedOpt := FormatOptions({ width: 55,  yPrev: 0,  noMulti: true, stopTab: True })
+	checkboxes[6].gui := myGui.addCheckBox(formattedOpt, checkboxes[6].name)
+	checkboxes[7].gui := myGui.addCheckBox(formattedOpt, checkboxes[7].name)
+	checkboxes[8].gui := myGui.addCheckBox(formattedOpt, checkboxes[8].name)
+	checkboxes[9].gui := myGui.addCheckBox(formattedOpt, checkboxes[9].name)
+
+	formattedOpt := FormatOptions({ width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True })
+	checkboxes[10].gui := myGui.addCheckBox(formattedOpt, checkboxes[10].name)
+
+	formattedOpt := FormatOptions({ width: 55,  yPrev: 0,  noMulti: true, stopTab: True })
+	checkboxes[11].gui := myGui.addCheckBox(formattedOpt, checkboxes[11].name)
+	checkboxes[12].gui := myGui.addCheckBox(formattedOpt, checkboxes[12].name)
+	checkboxes[13].gui := myGui.addCheckBox(formattedOpt, checkboxes[13].name)
+	checkboxes[14].gui := myGui.addCheckBox(formattedOpt, checkboxes[14].name)
+
+
+	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
+	for i, box in checkboxes
+	    box.gui.setFont(formatOptions(fontOpt))
 
 	createDefaultEnterButton(tabNum)
 }
