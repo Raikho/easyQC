@@ -62,6 +62,14 @@ sampleData := {
 }
 setupForIni(sampleData, "samples", hasPreviousValues := true)
 
+
+checkboxes := {
+ 	brands: [ { name: "Tageos" }, { name: "Paragon" }, { name: "Arizon" }, { name: "Avery" } ],
+	inlays: [ { name: "241" }, { name: "261" }, { name: "300" }, { name: "402" }, { name: "430" } ],
+	chips:  [ { name: "M7" }, { name: "M8" }, { name: "R6" }, { name: "U8" }, { name: "U9" } ],
+	getNames: (*) => ["one"],
+}
+
 sampleData.styleFilter.titles := ["All", "Tageos", "Paragon", "Arizon", "Avery",
 "430", "402", "430", "300", "261", "241", "M7", "M8", "R6", "U8", "U9"]
 
@@ -70,6 +78,7 @@ for i, v in sampleData.styleFilter.titles {
 	inlays.DefineProp(v, { value: Array()})
 }
 inlays.names := []
+inlays.filtered := []
 
 inlays.All := [
     { name: "Tageos 241 M7",          brand: "Tageos",  inlay: "241", chip: "M7" },
@@ -114,6 +123,8 @@ for i, inlay in inlays.All {
 		inlays.%inlay.brand%.Push(inlay.name)
 		inlays.%inlay.inlay%.Push(inlay.name)
 		inlays.%inlay.chip%.Push(inlay.name)
+
+		inlays.filtered.Push(inlay.name)
 }
 
 ;out := "output: `n"
@@ -302,6 +313,24 @@ onStyleFilterChange(*) {
 		}
 	}
 	sampleData.style.gui.Add(names)
+}
+
+updateCheckboxes(*) {
+	toggles := {}
+	for i, v in checkboxes.brands
+		toggles := toggles.DefineProp(v.name, { value: v.gui.value })
+	for i, v in checkboxes.inlays
+		toggles := toggles.DefineProp(v.name, { value: v.gui.value })
+	for i, v in checkboxes.chips
+		toggles := toggles.DefineProp(v.name, { value: v.gui.value })
+
+	sampleData.style.gui.Delete()
+	for i, v in inlays.All {
+		if (toggles.%v.brand% && toggles.%v.inlay% && toggles.%v.chip% ) {
+			sampleData.style.gui.Add([v.name])
+		}
+	}
+	sampleData.style.gui.Redraw()
 }
 
 onTabChange(tabObj) {
@@ -501,7 +530,7 @@ setupSamplesTab(tabNum) {
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
 
 
-	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), inlays.names)
+	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), checkboxes.getNames()) ; TODO
 	sampleData.style.gui.setFont(formatOptions(fontOpt), fontOpt.fontName)
 
 	; ROLL
@@ -530,43 +559,35 @@ setupSamplesTab(tabNum) {
 ;	sampleData.styleFilter.gui.setFont(formatOptions(fontOpt), fontOpt.hasProp("fontName") ? fontOpt.fontName : "")
 
 	; CHECKBOXES
-	g := myGui.AddGroupBox("xm12 yp40 w340 h85 cGray Section", "filters")
-
-	checkboxes := [{ name: "Tageos" }, { name: "Paragon" }, { name: "Arizon" }, { name: "Avery" },
-	{ name: "241" }, { name: "261" }, { name: "300" }, { name: "402" }, { name: "430" },
-	{ name: "M7" }, { name: "M8" }, { name: "R6" }, { name: "U8" }, { name: "U9" },
-	]
-
-	formattedOpt := FormatOptions({ checked: true, width: 70, xSection: 10, yPrev: 20, noMulti: true, stopTab: True })
-	checkboxes[1].gui := myGui.addCheckBox(formattedOpt . "Section", checkboxes[1].name)
-
-	formattedOpt := FormatOptions({ checked: true, width: 70,  ySection: 0, noMulti: true, stopTab: True })
-	checkboxes[2].gui := myGui.addCheckBox(formattedOpt, checkboxes[2].name)
-	checkboxes[3].gui := myGui.addCheckBox(formattedOpt, checkboxes[3].name)
-	checkboxes[4].gui := myGui.addCheckBox(formattedOpt, checkboxes[4].name)
-
-	formattedOpt := FormatOptions({ checked: true, width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True })
-	checkboxes[5].gui := myGui.addCheckBox(formattedOpt, checkboxes[5].name)
-
-	formattedOpt := FormatOptions({ checked: true, width: 55,  yPrev: 0,  noMulti: true, stopTab: True })
-	checkboxes[6].gui := myGui.addCheckBox(formattedOpt, checkboxes[6].name)
-	checkboxes[7].gui := myGui.addCheckBox(formattedOpt, checkboxes[7].name)
-	checkboxes[8].gui := myGui.addCheckBox(formattedOpt, checkboxes[8].name)
-	checkboxes[9].gui := myGui.addCheckBox(formattedOpt, checkboxes[9].name)
-
-	formattedOpt := FormatOptions({ checked: true, width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True })
-	checkboxes[10].gui := myGui.addCheckBox(formattedOpt, checkboxes[10].name)
-
-	formattedOpt := FormatOptions({ checked: true, width: 55,  yPrev: 0,  noMulti: true, stopTab: True })
-	checkboxes[11].gui := myGui.addCheckBox(formattedOpt, checkboxes[11].name)
-	checkboxes[12].gui := myGui.addCheckBox(formattedOpt, checkboxes[12].name)
-	checkboxes[13].gui := myGui.addCheckBox(formattedOpt, checkboxes[13].name)
-	checkboxes[14].gui := myGui.addCheckBox(formattedOpt, checkboxes[14].name)
-
+	myGui.AddGroupBox("xm12 yp40 w340 h85 cGray Section", "filters")
 
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE }
-	for i, box in checkboxes
-	    box.gui.setFont(formatOptions(fontOpt))
+
+	formattedOpt := FormatOptions({ checked: true, width: 70, xSection: 10, yPrev: 20, noMulti: true, stopTab: True }) . "Section"
+	for i, brand in checkboxes.brands {
+		brand.gui := myGui.addCheckBox(formattedOpt, brand.name)
+		formattedOpt := FormatOptions({ checked: true, width: 70,  ySection: 0, noMulti: true, stopTab: True })
+		brand.gui.setFont(formatOptions(fontOpt))
+		brand.gui.OnEvent("Click", (*) => updateCheckboxes())
+	}
+
+	formattedOpt := FormatOptions({ checked: true, width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True }) . "Section"
+	for i, inlay in checkboxes.inlays {
+		inlay.gui := myGui.addCheckBox(formattedOpt, inlay.name)
+		formattedOpt := FormatOptions({ checked: true, width: 55,  ySection: 0, noMulti: true, stopTab: True })
+		inlay.gui.setFont(formatOptions(fontOpt))
+		inlay.gui.OnEvent("Click", (*) => updateCheckboxes())
+	}
+
+	formattedOpt := FormatOptions({ checked: true, width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True }) . "Section"
+	for i, chip in checkboxes.chips {
+		chip.gui := myGui.addCheckBox(formattedOpt, chip.name)
+		formattedOpt := FormatOptions({ checked: true, width: 55,  yPrev: 0,  noMulti: true, stopTab: True })
+		chip.gui.setFont(formatOptions(fontOpt))
+		chip.gui.OnEvent("Click", (*) => updateCheckboxes())
+	}
+
+	updateCheckboxes()
 
 	createDefaultEnterButton(tabNum)
 }
