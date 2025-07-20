@@ -63,75 +63,46 @@ sampleData := {
 setupForIni(sampleData, "samples", hasPreviousValues := true)
 
 
-checkboxes := {
- 	brands: [ { name: "Tageos" }, { name: "Paragon" }, { name: "Arizon" }, { name: "Avery" } ],
-	inlays: [ { name: "241" }, { name: "261" }, { name: "300" }, { name: "402" }, { name: "430" } ],
-	chips:  [ { name: "M7" }, { name: "M8" }, { name: "R6" }, { name: "U8" }, { name: "U9" } ],
-	getNames: (*) => ["one"],
-}
 
-sampleData.styleFilter.titles := ["All", "Tageos", "Paragon", "Arizon", "Avery",
-"430", "402", "430", "300", "261", "241", "M7", "M8", "R6", "U8", "U9"]
+;array of objs: [
+;{
+;    text: "tageos 241 M7"
+;    brand: "tageos"
+;    antenna: "241"
+;    chip: "M7"
+;}]
 
-inlays := {}
-for i, v in sampleData.styleFilter.titles {
-	inlays.DefineProp(v, { value: Array()})
-}
-inlays.names := []
-inlays.filtered := []
-
-inlays.All := [
-    { name: "Tageos 241 M7",          brand: "Tageos",  inlay: "241", chip: "M7" },
-    { name: "Tageos 241 M8",          brand: "Tageos",  inlay: "241", chip: "M8" },
-    { name: "Tageos 241 U9",          brand: "Tageos",  inlay: "241", chip: "U9" },
-    { name: "Tageos 261 M7",          brand: "Tageos",  inlay: "261", chip: "M7" },
-    { name: "Tageos 261 M8",          brand: "Tageos",  inlay: "261", chip: "M8" },
-    { name: "Tageos 261 U9",          brand: "Tageos",  inlay: "261", chip: "U9" },
-    { name: "Tageos 300 M7",          brand: "Tageos",  inlay: "300", chip: "M7" },
-    { name: "Tageos 300 R6",          brand: "Tageos",  inlay: "300", chip: "R6" },
-	{ name: "Tageos 300 U8",          brand: "Tageos",  inlay: "300", chip: "U8" },
-    { name: "Tageos 300 U9 Zero Max", brand: "Tageos",  inlay: "300", chip: "U9" },
-    { name: "Tageos 300 U9",          brand: "Tageos",  inlay: "300", chip: "U9" },
-    { name: "Tageos 402 R6",          brand: "Tageos",  inlay: "402", chip: "R6" },
-    { name: "Tageos 402 R6-P",        brand: "Tageos",  inlay: "402", chip: "R6" },
-    { name: "Tageos 430 M7",          brand: "Tageos",  inlay: "430", chip: "M7" },
-    { name: "Tageos 430 M8",          brand: "Tageos",  inlay: "430", chip: "M8" },
-    { name: "Tageos 430 U9",          brand: "Tageos",  inlay: "430", chip: "U9" },
-    { name: "Arizon 300 M7",          brand: "Arizon",  inlay: "300", chip: "M7" },
-    { name: "Arizon 300 M8",          brand: "Arizon",  inlay: "300", chip: "M8" },
-    { name: "Arizon 430 M7",          brand: "Arizon",  inlay: "430", chip: "M7" },
-    { name: "Arizon 430 M8",          brand: "Arizon",  inlay: "430", chip: "M8" },
-    { name: "Paragon 261 M7",         brand: "Paragon", inlay: "261", chip: "M7" },
-    { name: "Paragon 300 M7",         brand: "Paragon", inlay: "300", chip: "M7" },
-    { name: "Paragon 300 R6-P",       brand: "Paragon", inlay: "300", chip: "R6" },
-    { name: "Paragon 402 R6-P",       brand: "Paragon", inlay: "402", chip: "R6" },
-    { name: "Paragon 430 M7",         brand: "Paragon", inlay: "430", chip: "M7" },
-    { name: "Avery 241 M7",           brand: "Avery",   inlay: "241", chip: "M7" },
-    { name: "Avery 241 M8",           brand: "Avery",   inlay: "241", chip: "M8" },
-    { name: "Avery 261 M8 Sonic",     brand: "Avery",   inlay: "261", chip: "M8" },
-    { name: "Avery 261 U9 Sonic",     brand: "Avery",   inlay: "261", chip: "U9" },
-    { name: "Avery 300 M7",           brand: "Avery",   inlay: "300", chip: "M7" },
-    { name: "Avery 300 U9",           brand: "Avery",   inlay: "300", chip: "U9" },
-    { name: "Avery 402 M7",           brand: "Avery",   inlay: "402", chip: "M7" },
-    { name: "Avery 402 M8 Burst",     brand: "Avery",   inlay: "402", chip: "M8" },
-    { name: "Avery 402 U9",           brand: "Avery",   inlay: "402", chip: "U9" },
-    { name: "Avery 430 U9 Longbow",   brand: "Avery",   inlay: "430", chip: "U9" },
+textInlays := [
+    "Tageos 241 M7", "Tageos 241 M8", "Tageos 241 U9", "Tageos 261 M7", "Tageos 261 M8", "Tageos 261 U9",
+	"Tageos 300 M7", "Tageos 300 R6", "Tageos 300 U8", "Tageos 300 U9", "Tageos 300 U9", "Tageos 402 R6",
+	"Tageos 402 R6", "Tageos 430 M7", "Tageos 430 M8", "Tageos 430 U9",
+    "Arizon 300 M7", "Arizon 300 M8", "Arizon 430 M7", "Arizon 430 M8",
+    "Paragon 261 M7", "Paragon 300 M7", "Paragon 300 R6", "Paragon 402 R6", "Paragon 430 M7",
+    "Avery 241 M7", "Avery 241 M8", "Avery 261 M8", "Avery 261 U9", "Avery 300 M7", "Avery 300 U9",
+	"Avery 402 M7", "Avery 402 M8", "Avery 402 U9", "Avery 430 U9",
 ]
 
-for i, inlay in inlays.All {
-		inlays.names.Push(inlay.name)
-		inlays.%inlay.brand%.Push(inlay.name)
-		inlays.%inlay.inlay%.Push(inlay.name)
-		inlays.%inlay.chip%.Push(inlay.name)
-
-		inlays.filtered.Push(inlay.name)
+fullInlays := [] 
+for i, fullString in textInlays {
+	str := strSplit(fullString, A_Space)
+	fullInlays.Push({ text: fullString, brand: str[1], inlay: str[2], chip: str[3] })
 }
 
-;out := "output: `n"
-;for i, name in inlays.Tageos {
-;	out .= name . "`n"
-;}
-;MsgBox(out)
+brands := []
+inlays := []
+chips := []
+{
+	tempObjArr := [{ }, { }, { }] ; easy way to extract uniques bc property names are unique
+	tempArrContainer := [brands, inlays, chips] 
+	for i, fullString  in textInlays {
+		for j, str in StrSplit(fullString, A_Space) {
+			if(!tempObjArr[j].HasOwnProp(str)) {
+				tempObjArr[j].DefineProp(str, { value: 0 })
+				tempArrContainer[j].push({ name: str })
+			}
+		}
+	}
+}
 
 labelData := {
 	order: { value: "'20010....", displayName: "Order#", index: 1, fixes: ["add_apostrophe"] },
@@ -315,21 +286,19 @@ onStyleFilterChange(*) {
 	sampleData.style.gui.Add(names)
 }
 
-updateCheckboxes(*) {
-	toggles := {}
-	for i, v in checkboxes.brands
-		toggles := toggles.DefineProp(v.name, { value: v.gui.value })
-	for i, v in checkboxes.inlays
-		toggles := toggles.DefineProp(v.name, { value: v.gui.value })
-	for i, v in checkboxes.chips
-		toggles := toggles.DefineProp(v.name, { value: v.gui.value })
+updateCheckboxes() {
+	toggles := Map()
+	for i, v in brands
+		toggles[v.name] := v.gui.value
+	for i, v in inlays
+		toggles[v.name] := v.gui.value
+	for i, v in chips
+		toggles[v.name] := v.gui.value
 
 	sampleData.style.gui.Delete()
-	for i, v in inlays.All {
-		if (toggles.%v.brand% && toggles.%v.inlay% && toggles.%v.chip% ) {
-			sampleData.style.gui.Add([v.name])
-		}
-	}
+	for i, obj in fullInlays
+		if (toggles.Get(obj.brand) && toggles.Get(obj.inlay) && toggles.Get(obj.chip))
+			sampleData.style.gui.Add([obj.text])
 	sampleData.style.gui.Redraw()
 }
 
@@ -528,9 +497,7 @@ setupSamplesTab(tabNum) {
 	editOpt := { ySection: 0, width: 180, background: sampleData.style.bg }
 	myGui.AddText(formatOptions(textOpt), "   Style:")
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
-
-
-	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), checkboxes.getNames()) ; TODO
+	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), textInlays )
 	sampleData.style.gui.setFont(formatOptions(fontOpt), fontOpt.fontName)
 
 	; ROLL
@@ -546,7 +513,8 @@ setupSamplesTab(tabNum) {
 	createEdit(sampleData.rollId, textOpt, editOpt)
 
 	; STYLE_FILTER
-;	textOpt := { yPrev: 30, xSection: 85, newSection: true }
+
+;   textOpt := { yPrev: 30, xSection: 85, newSection: true }
 ;	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE }
 ;	tempText := myGui.AddText(formatOptions(textOpt), "Style Filter")
 ;	tempText.setFont(formatOptions(fontOpt))
@@ -558,37 +526,24 @@ setupSamplesTab(tabNum) {
 ;	sampleData.styleFilter.gui.onEvent("Change", (*) => onStyleFilterChange())
 ;	sampleData.styleFilter.gui.setFont(formatOptions(fontOpt), fontOpt.hasProp("fontName") ? fontOpt.fontName : "")
 
-	; CHECKBOXES
+	; FILTER CHECKBOXES
 	myGui.AddGroupBox("xm12 yp40 w340 h85 cGray Section", "filters")
-
 	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE }
 
-	formattedOpt := FormatOptions({ checked: true, width: 70, xSection: 10, yPrev: 20, noMulti: true, stopTab: True }) . "Section"
-	for i, brand in checkboxes.brands {
-		brand.gui := myGui.addCheckBox(formattedOpt, brand.name)
-		formattedOpt := FormatOptions({ checked: true, width: 70,  ySection: 0, noMulti: true, stopTab: True })
-		brand.gui.setFont(formatOptions(fontOpt))
-		brand.gui.OnEvent("Click", (*) => updateCheckboxes())
-	}
+	for index, items in [brands, inlays, chips] {
+		w := 285 / items.Length
+		x0 := (index == 1) ? 10 : 0
+		newRowOpt := FormatOptions({ checked: true, width: w, xSection: x0, yPrev: 20, noMulti: true, stopTab: true, newSection: true })
+		newColOpt := FormatOptions({ checked: true, width: w,  ySection: 0, noMulti: true, stopTab: True })
 
-	formattedOpt := FormatOptions({ checked: true, width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True }) . "Section"
-	for i, inlay in checkboxes.inlays {
-		inlay.gui := myGui.addCheckBox(formattedOpt, inlay.name)
-		formattedOpt := FormatOptions({ checked: true, width: 55,  ySection: 0, noMulti: true, stopTab: True })
-		inlay.gui.setFont(formatOptions(fontOpt))
-		inlay.gui.OnEvent("Click", (*) => updateCheckboxes())
-	}
-
-	formattedOpt := FormatOptions({ checked: true, width: 55,  xSection: 0, yPrev: 20,  noMulti: true, stopTab: True }) . "Section"
-	for i, chip in checkboxes.chips {
-		chip.gui := myGui.addCheckBox(formattedOpt, chip.name)
-		formattedOpt := FormatOptions({ checked: true, width: 55,  yPrev: 0,  noMulti: true, stopTab: True })
-		chip.gui.setFont(formatOptions(fontOpt))
-		chip.gui.OnEvent("Click", (*) => updateCheckboxes())
+		for i, item in items {
+			item.gui := myGui.addCheckBox( (i == 1 ? newRowOpt : newColOpt), item.name)
+			item.gui.setFont(formatOptions(fontOpt))
+			item.gui.OnEvent("Click", (*) => updateCheckboxes())
+		}
 	}
 
 	updateCheckboxes()
-
 	createDefaultEnterButton(tabNum)
 }
 
@@ -1036,8 +991,6 @@ formatOptions(obj) {
 	if (obj.HasProp("noMulti"))
 		str .= "-Multi r1 "
 	
-
-
 	if (obj.HasProp("width"))
 		str .= "w" . obj.width . " "
 	if (obj.HasProp("height"))
@@ -1187,12 +1140,18 @@ classActive(params*) {
 ; ======================================= DEBUG ========================================
 ; =======================================================================================
 out(obj) {
+	if(Type(obj) == "Array") {
+		s := "arr:`n"
+		Loop obj.Length
+			s .= "  • " (IsObject(obj[A_Index]) ? reduceToStrings(obj[A_Index]) : String(obj[A_Index])) "`n"
+	    return OutputDebug(s)
+	}
 	if (!IsObject(obj)) {
 		return OutputDebug(obj)
 	}
 	s := "obj:`n"
 	for key, value in obj.OwnProps() {
-		s .= "    " key " = " (IsObject(value) ? reduceToStrings(value) : String(value)) "`n"
+		s .= "  •" key " = " (IsObject(value) ? reduceToStrings(value) : String(value)) "`n"
 	}
 	OutputDebug(s)
 }
@@ -1200,11 +1159,12 @@ out(obj) {
 reduceToStrings(obj) {
 	if (!isObject(obj))
 		return obj
-	s := ""
+	s := "{ "
 	for key, value in obj.OwnProps() {
-		s .= key " = " reduceToStrings(value) " | "
+		s .= key " = " reduceToStrings(value) " , "
 	}
-	return s
+	return SubStr(s, 1, -2) "}"
 }
 
-
+if(devMode)
+	OutputDebug("`n    ")
