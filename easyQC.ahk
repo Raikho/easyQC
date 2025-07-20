@@ -202,7 +202,7 @@ saveItem(item) {
 		writeItem(data.preOrder)
 
 		case "samples.customer":
-		sampleData.order.gui.value := sampleData.customer.gui.value . "-"
+		sampleData.order.gui.value := removeCounter(sampleData.customer.gui.value ) . "-"
 		writeItem(sampleData.order)
 
 		case "main.roll": 
@@ -226,6 +226,11 @@ saveItem(item) {
 
 	writeItem(item)
 	updateItemBg(item)
+}
+
+removeCounter(txt) {
+	pos := RegExMatch(txt, "-?[0-9]+$")
+	return (pos <= 0) ? txt : SubStr(txt, 1, pos - 1)
 }
 
 updateFixVisibility() {
