@@ -960,6 +960,25 @@ readCsv(*) {
 	return 1
 }
 
+changeCounter(item, direction, counterDigits := 3) {
+	txtPart := SubStr(item.gui.Value, 1, -1 * counterDigits)
+	numPart := SubStr(item.gui.Value,    -1 * counterDigits)
+	if(!isNumber(numPart))
+		return
+
+	num := Number(numPart) + (direction == "up" ? 1 : -1)
+	switch {
+		case num               >= 1000: numPart := "001"
+		case num < 1000 && num >=  100: numPart := String(num)
+		case num <  100 && num >=   10: numPart := "0" . String(num)
+		case num <   10 && num >=    1: numPart := "00" . String(num)
+		case num <    1               : numPart := "999"
+	}
+
+	item.gui.value := txtPart . numPart
+	saveItem(item)
+}
+
 changeDate(item, direction, delimiter := "/") {
     dlm := delimiter
 
