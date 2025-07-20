@@ -1074,29 +1074,20 @@ formatOptions(obj) {
 ; ====================================== HOTKEYS ========================================
 ; =======================================================================================
 
-#HotIf ( (Tab.value == "3") || (Tab.value == "2") )
-~WheelUp:: {
-	if (Tab.value == 3) {
-		MouseGetPos(, , , &dateControl)
-		if (dateControl == labelData.date.gui.ClassNN)
-			changeDate(labelData.date, "up", "/")
-	}
-	if (Tab.value == 2) {
-		MouseGetPos(, , , &dateControl)
-		if (dateControl == sampleData.date.gui.ClassNN)
-			changeDate(sampleData.date, "up", "-")
-	}
+MouseIsOver(WinTitle) {
+    MouseGetPos ,, &Win
+    return WinExist(WinTitle " ahk_id " Win)
 }
-~WheelDown:: {
-	if (Tab.value == 3) {
-		MouseGetPos(, , , &dateControl)
-		if (dateControl == labelData.date.gui.ClassNN)
-			changeDate(labelData.date, "down", "/")
-	}
-	if (Tab.value == 2) {
-		MouseGetPos(, , , &dateControl)
-		if (dateControl == sampleData.date.gui.ClassNN)
-			changeDate(sampleData.date, "down", "-")
+
+#HotIf MouseIsOver("ahk_exe AutoHotkey64.exe")
+~WheelUp:: onWheel("up")
+~WheelDown:: onWheel("down")
+onWheel(direction) {
+	MouseGetPos(,,, &controlClassNN)
+	switch controlClassNN {
+		case labelData.date.gui.ClassNN:      changeDate(labelData.date, direction, "/")
+		case sampleData.date.gui.ClassNN:     changeDate(sampleData.date, direction, "-")
+		case sampleData.customer.gui.ClassNN: changeCounter(sampleData.customer, direction)
 	}
 }
 
