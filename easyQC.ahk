@@ -1182,3 +1182,29 @@ classActive(params*) {
 		return true
 	return false
 }
+
+; =======================================================================================
+; ======================================= DEBUG ========================================
+; =======================================================================================
+out(obj) {
+	if (!IsObject(obj)) {
+		return OutputDebug(obj)
+	}
+	s := "obj:`n"
+	for key, value in obj.OwnProps() {
+		s .= "    " key " = " (IsObject(value) ? reduceToStrings(value) : String(value)) "`n"
+	}
+	OutputDebug(s)
+}
+
+reduceToStrings(obj) {
+	if (!isObject(obj))
+		return obj
+	s := ""
+	for key, value in obj.OwnProps() {
+		s .= key " = " reduceToStrings(value) " | "
+	}
+	return s
+}
+
+
