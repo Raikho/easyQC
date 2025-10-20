@@ -520,7 +520,7 @@ setupSamplesTab(tabNum) {
 	textOpt := { yPrev: 35, xSection: 0, newSection: true, noMulti: true }
 	editOpt := { ySection: 0, width: 180, background: sampleData.style.bg }
 	myGui.AddText(formatOptions(textOpt), "   Style:")
-	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
+	fontOpt := { fontSize: 12, fontName: "Aptos Narrow", foreground: SLATE, bold: true }
 	sampleData.style.gui := myGui.AddComboBox(formatOptions(editOpt), textInlays )
 	sampleData.style.gui.setFont(formatOptions(fontOpt), fontOpt.fontName)
 
