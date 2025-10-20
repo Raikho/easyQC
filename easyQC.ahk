@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 2 : 2
+DEFAULT_TAB := devMode ? 1  : 1 
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -42,8 +42,9 @@ setupForIni(data, "main", hasPreviousValues := true)
 
 settings := {
 	delay: { value: 100, displayName: "Delay (ms)" },
-	autoStyle : { value: 0, displayName: "Auto Style" },
+	autoStyle: { value: 0, displayName: "Auto Style" },
 	quickOrder: { value: 0, displayName: "Quick Order" },
+	orderGuard: { value: 1, displayName: "Order Guard (prevent typos)" },
 	orderPrefix: { value: "20010", displayName: "Prefix" }, 
 	enableFixes: { value: 1, displayname: "Enable Label Fixing" },
 	enableSampleButtons: { value: 0, displayname: "Enable Shortage Buttons" }, ; TODO: rename all "Sample" to "Shortage"
@@ -184,22 +185,39 @@ setupColors(items, bg, bgChanged) {
 	}
 }
 
+checkOrderTypo() {
+	prefix := SubStr(data.order.gui.value, 1, 6)
+	if (settings.quickOrder.gui.value) {
+		prefix := settings.orderPrefix.gui.value . SubStr(data.postOrder.gui.value, 1, 1)
+	}
+
+	isOrderGuard := settings.orderGuard.gui.value
+	isTypo := (prefix = "200101" || prefix = "200119")
+
+	newColor := (isTypo && isOrderGuard)  ? "cRed" : "cBlack"
+	data.order.gui.setFont(newColor)
+	data.postOrder.gui.setFont(newColor)
+}
+
 saveItem(item) {
 	switch (item.iniSection . "." . item.iniName) {
 		case "main.order":
 		data.postOrder.gui.value := SubStr(item.gui.value, -4)
 		writeItem(data.postOrder)
+		checkOrderTypo()
 
 		case "main.upc":
 		updateStyleLock()
 
 		case "main.postOrder":
-		data.order.gui.value := "20010" . item.gui.value
+		data.order.gui.value := settings.orderPrefix.gui.value . item.gui.value
 		writeItem(data.order)
+		checkOrderTypo()
 
 		case "settings.orderPrefix":
 		data.preOrder.gui.value := item.gui.value
 		writeItem(data.preOrder)
+		checkOrderTypo()
 
 		case "samples.customer":
 		sampleData.order.gui.value := removeCounter(sampleData.customer.gui.value ) . "-"
@@ -213,6 +231,7 @@ saveItem(item) {
 
 		case "settings.quickOrder":
 		updateQuickOrderVisibility()
+        checkOrderTypo()
 
 		case "settings.enableFixes":
 		updateFixVisibility()
@@ -639,7 +658,7 @@ setupSettingsTab(tabNum) {
 	myGui.SetFont("s12")
 	myGui.MarginY := 5
 
-	myGui.AddGroupBox("w330 h310 cGray Section", "general")
+	myGui.AddGroupBox("w330 h320 cGray Section", "general")
 
 	textOpt := { xPrev: 20, yPrev: 30, newSection: true }
 	editOpt := { ySection: 0, width: 80 }
@@ -656,6 +675,10 @@ setupSettingsTab(tabNum) {
 	editOpt := { charLimit: 5, ySection: 0, width: 80 }
 	createEdit(settings.orderPrefix, textOpt, editOpt)
 	updateQuickOrderVisibility()
+
+	opt := { xSection: 0, newSection: true, checked: settings.orderGuard.value }
+	createCheckbox(settings.orderGuard, opt, (*) => saveItem(settings.quickOrder))
+	checkOrderTypo()
 
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { xSection: 0, width: 260 }
