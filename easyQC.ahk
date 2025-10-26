@@ -77,7 +77,7 @@ textInlays := [
     "Tageos 241 M7", "Tageos 241 M8", "Tageos 241 U9", "Tageos 261 M7", "Tageos 261 M8", "Tageos 261 U9",
 	"Tageos 300 M7", "Tageos 300 R6", "Tageos 300 U8", "Tageos 300 U9", "Tageos 300 U9", "Tageos 402 R6",
 	"Tageos 402 R6", "Tageos 430 M7", "Tageos 430 M8", "Tageos 430 U9",
-    "Arizon 300 M7", "Arizon 300 M8", "Arizon 430 M7", "Arizon 430 M8",
+    "Arizon GR7E M7", "Arizon GR86 M8", "Arizon 430 M7", "Arizon 430 M8",
     "Paragon 261 M7", "Paragon 300 M7", "Paragon 300 R6", "Paragon 402 R6", "Paragon 430 M7",
     "Avery 241 M7", "Avery 241 M8", "Avery 261 M8", "Avery 261 U9", "Avery 300 M7", "Avery 300 U9",
 	"Avery 402 M7", "Avery 402 M8", "Avery 402 U9", "Avery 430 U9",
@@ -283,10 +283,16 @@ clearBgsForWrite(items) {
 }
 updatePrevValues(items) {
 	for (key, item in items.OwnProps()) {
-		item.prevValue := item.gui.value
-		writeItemPrev(item)
-		updateItemBg(item)
+		if (HasProp(item, "gui")) {
+			item.prevValue := item.gui.value
+			writeItemPrev(item)
+			updateItemBg(item)
+		}
 	}
+}
+
+updatePrevSampleValues() {
+
 }
 
 writeItem(item) => IniWrite(item.gui.value, "config.ini", item.iniSection, item.iniName) 
@@ -552,10 +558,10 @@ setupSamplesTab(tabNum) {
 
 	; FILTER CHECKBOXES
 	myGui.AddGroupBox("xm12 yp40 w340 h85 cGray Section", "filters")
-	fontOpt := { fontSize: 8, fontName: "Aptos Narrow", foreground: SLATE }
+	fontOpt := { fontSize: 7, fontName: "Aptos Narrow", foreground: SLATE }
 
 	for index, items in [brands, inlays, chips] {
-		w := 285 / items.Length
+		w := 270 / items.Length
 		x0 := (index == 1) ? 10 : 0
 		newRowOpt := FormatOptions({ checked: true, width: w, xSection: x0, yPrev: 20, noMulti: true, stopTab: true, newSection: true })
 		newColOpt := FormatOptions({ checked: true, width: w,  ySection: 0, noMulti: true, stopTab: True })
@@ -1125,7 +1131,7 @@ onSamplePrint(*) {
 	status[2] := inputDataAndSleep(sampleData.customer.gui.value)
 	status[3] := inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
 	status[4] := inputDataAndSleep("") ; No upc
-	status[5] := inputDataAndSleep(sampleData.brand.gui.value)
+	status[5] := inputDataAndSleep(sampleData.style.gui.value)
 	status[6] := inputDataAndSleep(sampleData.roll.gui.value)
 	status[7] := inputDataAndSleep("Y")
 	status[8] := inputDataAndSleep("N")
