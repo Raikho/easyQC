@@ -192,7 +192,7 @@ checkOrderTypo() {
 	}
 
 	isOrderGuard := settings.orderGuard.gui.value
-	isTypo := (prefix = "200101" || prefix = "200119")
+	isTypo := (prefix = "200100" || prefix = "200119")
 
 	newColor := (isTypo && isOrderGuard)  ? "cRed" : "cBlack"
 	data.order.gui.setFont(newColor)
