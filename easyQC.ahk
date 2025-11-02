@@ -48,6 +48,7 @@ settings := {
 	orderPrefix: { value: "20010", displayName: "Prefix" }, 
 	enableFixes: { value: 1, displayname: "Enable Label Fixing" },
 	enableSampleButtons: { value: 0, displayname: "Enable Shortage Buttons" }, ; TODO: rename all "Sample" to "Shortage"
+	qc4Toggle: { value: 0, displayname: "QC4 Toggle" },
 }
 setupForIni(settings, "settings")
 
@@ -677,6 +678,11 @@ setupSettingsTab(tabNum) {
 	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value }
 	createCheckbox(settings.quickOrder, opt, (*) => saveItem(settings.quickOrder))
 
+	myGui.SetFont("s8")
+	opt := { ySection: 0, xPrev: 210, checked: settings.qc4Toggle.value }
+	createCheckbox(settings.qc4Toggle, opt, (*) => saveItem(settings.qc4Toggle))
+	myGui.SetFont("s12")
+
 	textOpt := { xSection: 0, newSection: true }
 	editOpt := { charLimit: 5, ySection: 0, width: 80 }
 	createEdit(settings.orderPrefix, textOpt, editOpt)
@@ -1123,6 +1129,12 @@ onSamplePrint(*) {
 		return
 	}
 
+	sampleStyleText := sampleData.style.gui.Text
+
+	if (settings.qc4Toggle.gui.value) {
+		; TODO: Add Roll ID for qc4 chagne
+	}
+
 	Send("{Ctrl down}") ; todo: verify this fix works for ctrl key getting stuck
 	Send("{Ctrl up}")
 
@@ -1131,7 +1143,7 @@ onSamplePrint(*) {
 	status[2] := inputDataAndSleep(sampleData.customer.gui.value)
 	status[3] := inputDataAndSleep(sampleData.order.gui.value . sampleData.date.gui.value)
 	status[4] := inputDataAndSleep("") ; No upc
-	status[5] := inputDataAndSleep(sampleData.style.gui.value)
+	status[5] := inputDataAndSleep(sampleStyleText) ; TODO: verify text works
 	status[6] := inputDataAndSleep(sampleData.roll.gui.value)
 	status[7] := inputDataAndSleep("Y")
 	status[8] := inputDataAndSleep("N")
