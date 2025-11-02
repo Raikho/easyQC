@@ -21,7 +21,7 @@ PALE_BLUE := "eef2ff"
 NAVY_BLUE := "4d6d9a"
 SOLAR_BLUE := "268bd2"
 LIGHT_ORANGE := "fed7aa"
-PALE_ORANGE := "fdebd0"
+pale_orange := "fdebd0"
 DARK_ORANGE := "d57d55" ;"94755c", af8561, 946a6c, 9d816c
 DARK_YELLOW := "99873e" ; d4ac0d
 SLATE := "94a3b8"
@@ -1075,10 +1075,10 @@ onWheel(direction) {
 		case labelData.date.gui.ClassNN:      changeDate(labelData.date, direction, "/")
 		case sampleData.date.gui.ClassNN:     changeDate(sampleData.date, direction, "-")
 		case sampleData.customer.gui.ClassNN: changeCounter(sampleData.customer, direction)
-	}
+	} 
 }
 
-#HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe") or classActive("Notepad")
+#HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe", paths.rfid_file.gui.value) or classActive("Notepad")
 ^1::onPrint()
 ^2::onSamplePrint()
 
@@ -1148,7 +1148,7 @@ onSamplePrint(*) {
 }
 
 inputDataAndSleep(obj) {
-	if !exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe")
+	if !exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe", paths.rfid_file.gui.value)
 		&& !classActive("Notepad") {
 		return 0
 	}
