@@ -126,7 +126,7 @@ addStyleButton := { }
 paths := {
 	rfid_dir: { value: "C:\RFID\PROG\" },
 	rfid_file: { value: "RFIDQAR420.exe", displayName: "RFID Program" },
-	csv_dir: { value: "C:\RFID\ PACKLABEL\", displayName: "CSV Path" },
+	csv_dir: { value: "C:\RFID\PACKLABEL\", displayName: "CSV Path" },
 	csv_file: { value: "RFID-PACKLABEL.csv" },
 }
 setupForIni(paths, "paths")
@@ -685,7 +685,7 @@ setupSettingsTab(tabNum) {
 	opt := { xSection: 0, newSection: true, checked: settings.quickOrder.value }
 	createCheckbox(settings.quickOrder, opt, (*) => saveItem(settings.quickOrder))
 
-	myGui.SetFont("s8")
+	myGui.SetFont("s8") 
 	opt := { ySection: 0, xPrev: 210, checked: settings.qc4Toggle.value }
 	createCheckbox(settings.qc4Toggle, opt, (*) => saveItem(settings.qc4Toggle))
 	myGui.SetFont("s12")
@@ -1109,7 +1109,7 @@ onWheel(direction) {
 		case sampleData.date.gui.ClassNN:     changeDate(sampleData.date, direction, "-")
 		case sampleData.customer.gui.ClassNN: changeCounter(sampleData.customer, direction)
 	} 
-	Sleep(10) ;; limit script
+	Sleep(30) ;; limit script
 }
 
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe", paths.rfid_file.gui.value) or classActive("Notepad")
