@@ -1073,6 +1073,7 @@ MouseIsOver(WinTitle) {
 }
 
 #HotIf MouseIsOver("ahk_exe AutoHotkey64.exe")
+
 ~WheelUp:: onWheel("up")
 ~WheelDown:: onWheel("down")
 onWheel(direction) {
@@ -1082,6 +1083,7 @@ onWheel(direction) {
 		case sampleData.date.gui.ClassNN:     changeDate(sampleData.date, direction, "-")
 		case sampleData.customer.gui.ClassNN: changeCounter(sampleData.customer, direction)
 	} 
+	Sleep(10) ;; limit script
 }
 
 #HotIf exeActive("cmd.exe", "WindowsTerminal.exe", "emacs.exe", "sublime_text.exe", paths.rfid_file.gui.value) or classActive("Notepad")
