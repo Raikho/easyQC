@@ -13,7 +13,7 @@ WINDOW_X := devMode ? -600 : 0
 WINDOW_Y := devMode ? 160 : 0
 FONT_SIZE := 14
 TAB_FONT_SIZE := 10
-DEFAULT_TAB := devMode ? 1  : 1 
+DEFAULT_TAB := devMode ? 3 : 1
 tabTitles := [ "Main", "Samples", "Label", "Settings"]
 tabStatusMessages := ["Press ctrl+1 to output values", "Press ctrl+2 to output values, w/ blank upc", "", ""]
 ; COLORS
@@ -49,6 +49,7 @@ settings := {
 	enableFixes: { value: 1, displayname: "Enable Label Fixing" },
 	enableSampleButtons: { value: 0, displayname: "Enable Shortage Buttons" }, ; TODO: rename all "Sample" to "Shortage"
 	qc4Toggle: { value: 0, displayname: "QC4 Toggle" },
+	autoLabelDate: { value: 0, displayName: "Use Today's Date" },
 }
 setupForIni(settings, "settings")
 
@@ -591,6 +592,11 @@ setupLabelTab(tabNum) {
 	writeButton := MyGui.AddButton("x+15 yp h30 -TabStop", "write")
 	writeButton.OnEvent("Click", onWrite)
 
+	; Use Today's Date Checkbox
+	myGui.SetFont("s8")
+	opt := { xSection: 190, ySection: 20, checked: settings.autoLabelDate.value }
+	createCheckbox(settings.autoLabelDate, opt, onAutoDate)
+
 	myGui.SetFont("s8")
 	path := (devMode ? ".\test\" : paths.csv_dir.value) . paths.csv_file.value
 	pathText := MyGui.AddText("xS+22 yS+55 cGray", "Path: " . path)
@@ -631,6 +637,7 @@ setupLabelTab(tabNum) {
 	editOpt := { charLimit: 10, ySection: 0, width: 130, height: boxHeight}
 	createEdit(labelData.date, textOpt, editOpt)
 	quickFixButtonSetup(labelData.date)
+	onAutoDate() ;update original state using value of checkbox
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
@@ -897,15 +904,28 @@ onRead(*) {
 	if !readCsv()
 		return
 
+	settings.autolabelDate.gui.value := 0 ; Toggle off use todays date
+	onAutoDate()
+
 	for key1, csvItem in csv.OwnProps()
-	for key2, labelItem  in labelData.OwnProps()
-	if (labelItem.index == csvItem.index) {
-		labelItem.gui.value := csvItem.value
-		saveItem(labelItem)
-	}
+        for key2, labelItem  in labelData.OwnProps()
+	        if (labelItem.index == csvItem.index) {
+			    labelItem.gui.value := csvItem.value
+			    saveItem(labelItem)
+		    }
 
 	updatePrevValues(labelData)
 }
+
+onAutoDate(*) {
+	saveItem(settings.autoLabelDate)
+	isChecked := settings.autoLabelDate.gui.value
+	labelData.date.gui.value := isChecked ? getDate() : readItem(labelData.date)
+	labelData.date.gui.Enabled := !isChecked
+}
+
+getDate(*) => A_MM . "/" . A_DD . "/" . A_YYYY
+
 csvConcat(array) {
 	out .= ""
 	for (index, value in array)
@@ -1077,6 +1097,9 @@ MouseIsOver(WinTitle) {
 ~WheelUp:: onWheel("up")
 ~WheelDown:: onWheel("down")
 onWheel(direction) {
+	if(settings.autoLabelDate.gui.value = 1) {
+		return
+	}
 	MouseGetPos(,,, &controlClassNN)
 	switch controlClassNN {
 		case labelData.date.gui.ClassNN:      changeDate(labelData.date, direction, "/")
