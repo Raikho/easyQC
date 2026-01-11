@@ -126,7 +126,7 @@ addStyleButton := { }
 paths := {
 	rfid_dir: { value: "C:\RFID\PROG\" },
 	rfid_file: { value: "RFIDQAR420.exe", displayName: "RFID Program" },
-	csv_dir: { value: "C:\RFID\PACKLABEL\", displayName: "CSV Path" },
+	csv_dir: { value: "C:\RFID\ PACKLABEL\", displayName: "CSV Path" },
 	csv_file: { value: "RFID-PACKLABEL.csv" },
 }
 setupForIni(paths, "paths")
@@ -637,7 +637,7 @@ setupLabelTab(tabNum) {
 	editOpt := { charLimit: 10, ySection: 0, width: 130, height: boxHeight}
 	createEdit(labelData.date, textOpt, editOpt)
 	quickFixButtonSetup(labelData.date)
-	onAutoDate() ;update original state using value of checkbox
+	; auto date after settings tab is loaded
 
 	; ROLL
 	textOpt := { xSection: 0, newSection: true, height: boxHeight }
@@ -713,6 +713,7 @@ setupSettingsTab(tabNum) {
 
 	opt := { xSection: 0, newSection: true, checked: settings.enableFixes.value }
 	createCheckbox(settings.enableFixes, opt, (*) => saveItem(settings.enableFixes))
+	onAutoDate() ; update initial state of date based on autoLabelDate and enableFixes checkbox states
 
 	opt := { xSection: 0, newSection: true, checked: settings.enableSampleButtons.value }
 	createCheckbox(settings.enableSampleButtons, opt, (*) => saveItem(settings.enableSampleButtons))
@@ -922,6 +923,8 @@ onAutoDate(*) {
 	isChecked := settings.autoLabelDate.gui.value
 	labelData.date.gui.value := isChecked ? getDate() : readItem(labelData.date)
 	labelData.date.gui.Enabled := !isChecked
+
+	labelData.date.fixButton.visible := settings.enableFixes.gui.value ? canFix(labelData.date) : false
 }
 
 getDate(*) => A_MM . "/" . A_DD . "/" . A_YYYY
