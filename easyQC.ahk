@@ -1,6 +1,26 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance force
 
+; CONSTANTS
+WINDOW_WIDTH := 371
+WINDOW_HEIGHT := 450
+WINDOW_X := -600
+WINDOW_Y := 100
+FONT_SIZE := 14
+FONT_1 := "Courier New"
+FONT_2 := "Verdana"
+
+; COLORS
+PALE_BLUE := "eef2ff"
+NAVY_BLUE := "4d6d9a"
+SOLAR_BLUE := "268bd2"
+LIGHT_ORANGE := "fed7aa"
+PALE_ORANGE := "fdebd0"
+DARK_ORANGE := "d57d55"
+DARK_YELLOW := "99873e"
+SLATE := "94a3b8"
+LIGHT_STONE := "e7e5e4"
+
 ; =======================================================================================
 ; ======================================= CLASSES =======================================
 ; =======================================================================================
@@ -15,6 +35,11 @@
 ; ===================================== CREATE GUI ======================================
 ; =======================================================================================
 
+my_gui := GUI("+0x40000") ; resizable
+my_gui.OnEvent("Close", (*) => ExitApp)
+my_gui.SetFont("s" . FONT_SIZE, FONT_1)
+
+my_gui.Show("w" . WINDOW_WIDTH . " h" . WINDOW_HEIGHT . " x" . WINDOW_X . " y" . WINDOW_Y)
 
 ; =======================================================================================
 ; ===================================== FUNCTIONS =======================================
